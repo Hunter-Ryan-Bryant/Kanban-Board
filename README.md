@@ -3,7 +3,7 @@
 
 > A high-performance, full-stack task management application designed for seamless team productivity, featuring real-time synchronization, secure authentication, and robust data isolation.
 
-![Kanban Board Screenshot](./assets/screenshot.png) <!-- Make sure to put your screenshot in an 'assets' folder -->
+![Kanban Board Screenshot](src="https://github.com/user-attachments/assets/1c196828-2333-4e50-bc3d-a2f2b7015d6a") <!-- Make sure to put your screenshot in an 'assets' folder -->
 
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-for-the-badge&logo=vercel)](https://board-assesment.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-for-the-badge)](LICENSE)
