@@ -2,7 +2,7 @@
 
 > A high-performance, full-stack task management application designed for seamless team productivity, featuring real-time synchronization, secure authentication, and robust data isolation.
 
-"C:\Users\ryanh\OneDrive\Pictures\Screenshots\Screenshot 2026-11-14 203610.png"
+("C:\Users\ryanh\OneDrive\Pictures\Screenshots\Screenshot 2026-11-14 203610.png")
 
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-for-the-badge&logo=vercel)](https://board-assesment.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-for-the-badge)](LICENSE)
