@@ -1,10 +1,10 @@
-# 🚀 [Project Name - e.g., TaskFlow / Full-Stack Task Manager]
+# 🚀 Kanban-Board
 
 > A high-performance, full-stack task management application designed for seamless team productivity, featuring real-time synchronization, secure authentication, and robust data isolation.
 
-![Project Banner or Screenshot](./path/to/screenshot.png) <!-- Replace with a real screenshot or GIF -->
+"C:\Users\ryanh\OneDrive\Pictures\Screenshots\Screenshot 2026-11-14 203610.png"
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-for-the-badge&logo=vercel)](https://your-live-app-url.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-for-the-badge&logo=vercel)](https://board-assesment.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-for-the-badge)](LICENSE)
 [![Supabase Status](https://img.shields.io/badge/Supabase-Integrated-3ecf8e?style=flat-for-the-badge&logo=supabase)](https://supabase.com)
 
@@ -45,5 +45,5 @@ Follow these steps to run the project locally on your machine:
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-cd your-repo-name
+git clone https://github.com/rm9v27j9jv-collab/Kanban-Board
+cd Kandban-Board
