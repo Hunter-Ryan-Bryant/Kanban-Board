@@ -1,52 +1,16 @@
-# 🚀 Kanban Board
+# React + Vite
 
-> A high-performance, full-stack task management application designed for seamless team productivity, featuring real-time synchronization, secure authentication, and robust data isolation.
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-![Kanban Board Screenshot](public/assets/kanban-screenshot.png) <!-- Make sure to put your screenshot in an 'assets' folder -->
+Currently, two official plugins are available:
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-for-the-badge&logo=vercel)](https://board-assesment.netlify.app/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-for-the-badge)](LICENSE)
-[![Supabase Status](https://img.shields.io/badge/Supabase-Integrated-3ecf8e?style=flat-for-the-badge&logo=supabase)](https://supabase.com)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
----
+## React Compiler
 
-## ✨ Key Features
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- **🔐 Secure Authentication:** User sign-up, login, and session persistence powered by Supabase Auth.
-- **⚡ Real-Time Data Sync:** Instant UI updates across clients leveraging Supabase real-time database subscriptions.
-- **🛡️ Row-Level Security (RLS):** Strict database policies ensuring users can only read and mutate their own tasks.
-- **🎨 Modern UI/UX:** Built with React, Vite, and Tailwind CSS for a lightning-fast, responsive user experience.
-- **🔍 Advanced Filtering & Sorting:** Quickly organize tasks by status, priority, or due date.
+## Expanding the Oxlint configuration
 
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** React, Vite, JavaScript, Tailwind CSS
-- **Backend / Database:** Supabase (PostgreSQL, Auth, Row-Level Security)
-- **Deployment & Tooling:** Netlify, Git / GitHub
-
----
-
-## 🏗️ Architecture & Engineering Decisions
-
-- **Why Supabase over a custom Node/Express backend?** Chosen to accelerate full-stack delivery while maintaining enterprise-grade security. By leveraging Supabase's built-in PostgreSQL Row-Level Security (RLS), authorization logic is enforced directly at the database layer, eliminating API vulnerabilities.
-- **State Management:** Utilized React Context alongside custom hooks to cleanly separate asynchronous data fetching from component rendering logic.
-
----
-
-## 🏁 Getting Started Locally
-
-Follow these steps to run the project locally on your machine:
-
-### Prerequisites
-
-- Node.js (v18+ recommended)
-- A free [Supabase](https://supabase.com) account and project.
-
-### 1. Clone the repository
-
-```bash
-git clone [https://github.com/rm9v27j9jv-collab/Kanban-Board.git](https://github.com/rm9v27j9jv-collab/Kanban-Board.git)
-cd Kanban-Board
-```
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
