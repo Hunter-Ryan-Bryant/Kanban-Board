@@ -1,4 +1,4 @@
-<img width="1920" height="1128" alt="Screenshot 2026-11-14 203610" src="https://github.com/user-attachments/assets/1c196828-2333-4e50-bc3d-a2f2b7015d6a" />
+
 # 🚀 Kanban Board
 
 > A high-performance, full-stack task management application designed for seamless team productivity, featuring real-time synchronization, secure authentication, and robust data isolation.
