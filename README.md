@@ -1,52 +1,75 @@
-# 🚀 Kanban Board
+# Kanban Board
 
-> A high-performance, full-stack task management application designed for seamless team productivity, featuring real-time synchronization, secure authentication, and robust data isolation.
+> A Linear/Asana-inspired task management board built with React and Supabase. Each visitor gets a private workspace through anonymous auth, and PostgreSQL Row Level Security keeps every workspace's data isolated at the database layer.
 
 ![Kanban Board Screenshot](./assets/kanban-screenshot.png)
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-for-the-badge&logo=vercel)](https://board-assesment.netlify.app/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-for-the-badge)](LICENSE)
-[![Supabase Status](https://img.shields.io/badge/Supabase-Integrated-3ecf8e?style=flat-for-the-badge&logo=supabase)](https://supabase.com)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat&logo=netlify)](https://board-assesment.netlify.app/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e?style=flat&logo=supabase)](https://supabase.com)
 
 ---
 
 ## ✨ Key Features
 
-- **🔐 Secure Authentication:** User sign-up, login, and session persistence powered by Supabase Auth.
-- **⚡ Real-Time Data Sync:** Instant UI updates across clients leveraging Supabase real-time database subscriptions.
-- **🛡️ Row-Level Security (RLS):** Strict database policies ensuring users can only read and mutate their own tasks.
-- **🎨 Modern UI/UX:** Built with React, Vite, and Tailwind CSS for a lightning-fast, responsive user experience.
-- **🔍 Advanced Filtering & Sorting:** Quickly organize tasks by status, priority, or due date.
+- **🗂️ Four workflow columns:** To Do, In Progress, In Review and Done, with native HTML5 drag-and-drop to move tasks between them.
+- **🔐 Instant private workspace:** No sign-up required. Each visitor is signed in with Supabase Anonymous Auth, and the session persists across reloads.
+- **🛡️ Row Level Security (RLS):** Policies on all six tables ensure a session can only read and change its own data.
+- **🔍 Search and filtering:** Live search plus filters for priority, due-date urgency, assignee and label.
+- **📅 Due-date tracking:** Tasks show "Overdue", "Due Today" or "Due in Nd" badges, and a summary bar counts total, completed and overdue tasks.
+- **🏷️ Labels and team members:** Create custom color-coded labels and team members, then attach them to tasks.
+- **💬 Task detail drawer:** A slide-over panel with threaded comments and an automatic activity log of every change.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React, Vite, JavaScript, Tailwind CSS
-- **Backend / Database:** Supabase (PostgreSQL, Auth, Row-Level Security)
-- **Deployment & Tooling:** Netlify, Git / GitHub
+- **Frontend:** React 19, Vite, JavaScript, inline component styles
+- **Backend / Database:** Supabase (PostgreSQL, Anonymous Auth, Row Level Security)
+- **Tooling & Deployment:** oxlint, Netlify, Git / GitHub
 
 ---
 
 ## 🏗️ Architecture & Engineering Decisions
 
-- **Why Supabase over a custom Node/Express backend?** Chosen to accelerate full-stack delivery while maintaining enterprise-grade security. By leveraging Supabase's built-in PostgreSQL Row-Level Security (RLS), authorization logic is enforced directly at the database layer, eliminating API vulnerabilities.
-- **State Management:** Utilized React Context alongside custom hooks to cleanly separate asynchronous data fetching from component rendering logic.
+- **Why Supabase instead of a custom Node/Express backend?** It let me ship a full-stack app quickly without giving up security. Authorization lives in PostgreSQL RLS policies, so even a request that bypasses the UI can't touch another session's rows.
+- **Why anonymous auth?** Visitors (including recruiters clicking the demo link) can try the board immediately without creating an account, while still getting an isolated workspace.
+- **Data model:** Six normalized tables: `tasks`, `labels`, `task_labels` (many-to-many join), `team_members`, `task_comments` and `task_activity`.
+- **State:** Board data is loaded from Supabase into React state (`useState`) and updated after each successful write.
 
 ---
 
 ## 🏁 Getting Started Locally
 
-Follow these steps to run the project locally on your machine:
-
 ### Prerequisites
 
-- Node.js (v18+ recommended)
-- A free [Supabase](https://supabase.com) account and project.
+- Node.js 18 or newer
+- A free [Supabase](https://supabase.com) project with **Anonymous Sign-Ins enabled** (Authentication → Providers)
 
 ### 1. Clone the repository
 
 ```bash
-git clone [https://github.com/rm9v27j9jv-collab/Kanban-Board.git](https://github.com/rm9v27j9jv-collab/Kanban-Board.git)
+git clone https://github.com/rm9v27j9jv-collab/Kanban-Board.git
 cd Kanban-Board
+npm install
+```
+
+### 2. Configure environment variables
+
+Create a `.env` file in the project root (it is already git-ignored):
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 3. Set up the database
+
+In your Supabase project, create the six tables listed above and enable RLS on each, with policies that restrict rows to `auth.uid()`.
+
+### 4. Run it
+
+```bash
+npm run dev      # start the dev server
+npm run build    # production build
+npm run lint     # lint with oxlint
 ```
