@@ -1,0 +1,113 @@
+.card {
+  background-color: var(--surface-raised);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: var(--border-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Higher specificity than :hover so the red edge stays on hover. */
+.card.overdue,
+.card.overdue:hover,
+.card.overdue:focus-visible {
+  border-left: 3px solid #ef4444;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.priority {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.05em;
+  background-color: var(--border-control);
+  color: #cbd5e1;
+}
+
+.priority[data-priority="high"] {
+  background-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+.priority[data-priority="low"] {
+  background-color: #14532d;
+  color: #86efac;
+}
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.375rem 0;
+  color: #f9fafb;
+}
+
+.description {
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Colors follow getDueDateStatus()'s type. */
+.due {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.72rem;
+  background-color: var(--surface-control);
+  color: var(--text-muted);
+  border: 1px solid var(--border-control);
+}
+
+.due[data-type="completed"] {
+  background-color: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
+.due[data-type="overdue"] {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+
+.due[data-type="due_soon"] {
+  background-color: #451a03;
+  color: #fcd34d;
+  border-color: #b45309;
+}

@@ -1,30 +1,30 @@
 import { useMemo } from "react";
-import { getDueDateStatus } from "../lib/utils";
-import { styles } from "../styles";
+import { cx, getDueDateStatus } from "../lib/utils";
+import css from "./Header.module.css";
+import ui from "./ui.module.css";
 
+// The dot's color comes from data-status in Header.module.css.
 const REALTIME_STATES = {
   live: {
     label: "Live",
-    color: "#10b981",
     title: "Changes from other tabs and devices appear instantly",
   },
   offline: {
     label: "Reconnecting…",
-    color: "#ef4444",
     title: "Live updates paused, reconnecting…",
   },
   connecting: {
     label: "Connecting…",
-    color: "#f59e0b",
     title: "Connecting to live updates…",
   },
 };
 
-function StatBadge({ label, value, valueColor, borderColor }) {
+// `tone`: "success" | "danger" | "muted" | undefined
+function StatBadge({ label, value, tone, alert = false }) {
   return (
-    <div style={{ ...styles.statBadge, ...(borderColor && { borderColor }) }}>
-      <span style={styles.statLabel}>{label}</span>
-      <span style={{ ...styles.statValue, ...(valueColor && { color: valueColor }) }}>
+    <div className={cx(css.stat, alert && css.statAlert)}>
+      <span className={css.statLabel}>{label}</span>
+      <span className={css.statValue} data-tone={tone}>
         {value}
       </span>
     </div>
@@ -50,44 +50,46 @@ export default function Header({
     }),
     [tasks],
   );
-  const realtime = REALTIME_STATES[realtimeStatus] ?? REALTIME_STATES.connecting;
+  const status = REALTIME_STATES[realtimeStatus] ? realtimeStatus : "connecting";
+  const realtime = REALTIME_STATES[status];
   const hasOverdue = stats.overdue > 0;
 
   return (
-    <header style={styles.header}>
+    <header className={css.header}>
       <div>
-        <h1 style={styles.logo}>Kanban Workspace</h1>
-        <p style={styles.subtitle}>
+        <h1 className={css.logo}>Kanban Workspace</h1>
+        <p className={css.subtitle}>
           Guest Session Active • Custom Tags, Assignments & Audit Logs
         </p>
-        <p role="status" style={styles.realtimeStatus} title={realtime.title}>
+        <p role="status" className={css.realtimeStatus} title={realtime.title}>
           <span
             aria-hidden="true"
-            style={{ ...styles.realtimeDot, backgroundColor: realtime.color }}
+            className={css.realtimeDot}
+            data-status={status}
           />
           {realtime.label}
         </p>
       </div>
 
-      <div style={styles.headerRight}>
-        <div style={styles.statsGroup}>
+      <div className={css.actions}>
+        <div className={css.stats}>
           <StatBadge label="Total" value={stats.total} />
-          <StatBadge label="Done" value={stats.completed} valueColor="#10b981" />
+          <StatBadge label="Done" value={stats.completed} tone="success" />
           <StatBadge
             label="Overdue"
             value={stats.overdue}
-            valueColor={hasOverdue ? "#f87171" : "#94a3b8"}
-            borderColor={hasOverdue ? "#7f1d1d" : "#1e293b"}
+            tone={hasOverdue ? "danger" : "muted"}
+            alert={hasOverdue}
           />
         </div>
 
-        <button style={styles.secondaryHeaderBtn} onClick={onOpenLabels}>
+        <button type="button" className={ui.headerButton} onClick={onOpenLabels}>
           <span aria-hidden="true">🏷️ </span>Labels ({labelCount})
         </button>
-        <button style={styles.secondaryHeaderBtn} onClick={onOpenTeam}>
+        <button type="button" className={ui.headerButton} onClick={onOpenTeam}>
           <span aria-hidden="true">👥 </span>Team ({memberCount})
         </button>
-        <button style={styles.primaryButton} onClick={onNewTask}>
+        <button type="button" className={ui.primaryButton} onClick={onNewTask}>
           + New Task
         </button>
       </div>

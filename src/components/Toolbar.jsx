@@ -1,4 +1,4 @@
-import { styles } from "../styles";
+import css from "./Toolbar.module.css";
 
 export default function Toolbar({
   filters,
@@ -9,9 +9,9 @@ export default function Toolbar({
   teamMembers,
 }) {
   return (
-    <div style={styles.toolbar}>
-      <div style={styles.searchWrapper}>
-        <span aria-hidden="true" style={styles.searchIcon}>
+    <div className={css.toolbar}>
+      <div className={css.search}>
+        <span aria-hidden="true" className={css.searchIcon}>
           🔍
         </span>
         <input
@@ -20,15 +20,15 @@ export default function Toolbar({
           onChange={(e) => setFilter("search", e.target.value)}
           placeholder="Search tasks..."
           aria-label="Search tasks"
-          style={styles.searchInput}
+          className={css.searchInput}
         />
       </div>
-      <div style={styles.filterGroup}>
+      <div className={css.filters}>
         <select
           value={filters.label}
           onChange={(e) => setFilter("label", e.target.value)}
           aria-label="Filter by label"
-          style={styles.filterSelect}
+          className={css.filter}
         >
           <option value="all">All Labels</option>
           {labels.map((l) => (
@@ -41,7 +41,7 @@ export default function Toolbar({
           value={filters.assignee}
           onChange={(e) => setFilter("assignee", e.target.value)}
           aria-label="Filter by assignee"
-          style={styles.filterSelect}
+          className={css.filter}
         >
           <option value="all">All Assignees</option>
           <option value="unassigned">Unassigned</option>
@@ -55,7 +55,7 @@ export default function Toolbar({
           value={filters.priority}
           onChange={(e) => setFilter("priority", e.target.value)}
           aria-label="Filter by priority"
-          style={styles.filterSelect}
+          className={css.filter}
         >
           <option value="all">All Priorities</option>
           <option value="high">High Priority</option>
@@ -66,7 +66,7 @@ export default function Toolbar({
           value={filters.urgency}
           onChange={(e) => setFilter("urgency", e.target.value)}
           aria-label="Filter by due date"
-          style={styles.filterSelect}
+          className={css.filter}
         >
           <option value="all">All Due Dates</option>
           <option value="overdue">Overdue Only</option>
@@ -76,7 +76,7 @@ export default function Toolbar({
           <button
             type="button"
             onClick={clearFilters}
-            style={styles.clearButton}
+            className={css.clearButton}
             aria-label="Clear all filters"
           >
             Clear

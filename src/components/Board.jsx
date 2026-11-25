@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { COLUMNS } from "../lib/constants";
-import { styles } from "../styles";
+import css from "./Board.module.css";
 import TaskCard from "./TaskCard";
 
 export default function Board({
@@ -29,28 +29,29 @@ export default function Board({
   }
 
   return (
-    <div style={styles.board}>
+    <div className={css.board}>
       {COLUMNS.map((col) => {
         const columnTasks = tasks.filter((t) => t.status === col.id);
         return (
           <section
             key={col.id}
             aria-labelledby={`${id}-${col.id}`}
-            style={styles.column}
+            className={css.column}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, col.id)}
           >
-            <div style={styles.columnHeader}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className={css.columnHeader}>
+              <div className={css.columnName}>
                 <span
                   aria-hidden="true"
-                  style={{ ...styles.dot, backgroundColor: col.color }}
+                  className={css.dot}
+                  style={{ "--dot": col.color }}
                 />
-                <h2 id={`${id}-${col.id}`} style={styles.columnTitle}>
+                <h2 id={`${id}-${col.id}`} className={css.columnTitle}>
                   {col.label}
                 </h2>
               </div>
-              <span style={styles.taskCount}>
+              <span className={css.count}>
                 {columnTasks.length}
                 <span className="sr-only">
                   {columnTasks.length === 1 ? " task" : " tasks"}
@@ -58,7 +59,7 @@ export default function Board({
               </span>
             </div>
 
-            <div style={styles.taskList}>
+            <div className={css.taskList}>
               {columnTasks.map((task) => (
                 <TaskCard
                   key={task.id}
@@ -73,7 +74,7 @@ export default function Board({
                 />
               ))}
               {columnTasks.length === 0 && (
-                <div style={styles.emptyColumn}>
+                <div className={css.empty}>
                   {hasActiveFilters ? "No matching tasks" : "Drop tasks here"}
                 </div>
               )}

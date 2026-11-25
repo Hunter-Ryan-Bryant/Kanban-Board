@@ -44,19 +44,17 @@ export function formatTime(timestamp) {
   });
 }
 
-const DUE_SOON = { type: "due_soon", bg: "#451a03", color: "#fcd34d", border: "#b45309" };
+// Joins class names, skipping falsy values: cx("a", cond && "b").
+export function cx(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
+// Returns { type, label } for a task's due date, or null without one.
+// `type` is "completed", "overdue", "due_soon" or "upcoming"; TaskCard
+// colors the badge from it.
 export function getDueDateStatus(dueDateStr, taskStatus) {
   if (!dueDateStr) return null;
-  if (taskStatus === "done") {
-    return {
-      type: "completed",
-      label: dueDateStr,
-      bg: "#064e3b",
-      color: "#6ee7b7",
-      border: "#047857",
-    };
-  }
+  if (taskStatus === "done") return { type: "completed", label: dueDateStr };
 
   const [year, month, day] = dueDateStr.split("-").map(Number);
   const due = new Date(year, month - 1, day);
@@ -66,21 +64,9 @@ export function getDueDateStatus(dueDateStr, taskStatus) {
   const diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
-    return {
-      type: "overdue",
-      label: `Overdue (${dueDateStr})`,
-      bg: "#450a0a",
-      color: "#fca5a5",
-      border: "#991b1b",
-    };
+    return { type: "overdue", label: `Overdue (${dueDateStr})` };
   }
-  if (diffDays === 0) return { ...DUE_SOON, label: "Due Today" };
-  if (diffDays <= 2) return { ...DUE_SOON, label: `Due in ${diffDays}d` };
-  return {
-    type: "upcoming",
-    label: dueDateStr,
-    bg: "#1e293b",
-    color: "#94a3b8",
-    border: "#334155",
-  };
+  if (diffDays === 0) return { type: "due_soon", label: "Due Today" };
+  if (diffDays <= 2) return { type: "due_soon", label: `Due in ${diffDays}d` };
+  return { type: "upcoming", label: dueDateStr };
 }

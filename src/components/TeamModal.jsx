@@ -1,6 +1,8 @@
 import { useId, useState } from "react";
 import { AVATAR_COLORS } from "../lib/constants";
-import { styles } from "../styles";
+import { cx } from "../lib/utils";
+import css from "./TeamModal.module.css";
+import ui from "./ui.module.css";
 import { Avatar } from "./Badges";
 import ColorSwatches from "./ColorSwatches";
 import Modal from "./Modal";
@@ -31,13 +33,10 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
 
   return (
     <Modal title="Team Members" onClose={onClose}>
-      <form
-        onSubmit={handleSubmit}
-        style={{ ...styles.form, marginBottom: "1.25rem" }}
-      >
-        <div style={styles.rowGroup}>
-          <div style={styles.fieldGroup}>
-            <label htmlFor={`${id}-name`} style={styles.label}>
+      <form onSubmit={handleSubmit} className={cx(ui.form, ui.manageForm)}>
+        <div className={ui.rowGroup}>
+          <div className={ui.fieldGroup}>
+            <label htmlFor={`${id}-name`} className={ui.label}>
               Name *
             </label>
             <input
@@ -48,11 +47,11 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Alex Rivera"
               required
-              style={styles.input}
+              className={ui.input}
             />
           </div>
-          <div style={styles.fieldGroup}>
-            <label htmlFor={`${id}-role`} style={styles.label}>
+          <div className={ui.fieldGroup}>
+            <label htmlFor={`${id}-role`} className={ui.label}>
               Role
             </label>
             <input
@@ -61,12 +60,12 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="Developer"
-              style={styles.input}
+              className={ui.input}
             />
           </div>
         </div>
-        <div style={styles.fieldGroup}>
-          <span id={`${id}-color`} style={styles.label}>
+        <div className={ui.fieldGroup}>
+          <span id={`${id}-color`} className={ui.label}>
             Avatar Color
           </span>
           <ColorSwatches
@@ -77,43 +76,30 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
           >
             <button
               type="submit"
-              style={{
-                ...styles.primaryButton,
-                marginLeft: "auto",
-                padding: "0.45rem 1rem",
-              }}
+              className={cx(ui.primaryButton, ui.inlineSubmit)}
             >
               + Add Member
             </button>
           </ColorSwatches>
         </div>
       </form>
-      <hr style={styles.divider} />
-      <div style={styles.memberList}>
+      <hr className={ui.divider} />
+      <div className={ui.list}>
         {teamMembers.map((member) => (
-          <div key={member.id} style={styles.memberItem}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <Avatar
-                member={member}
-                style={{ width: "32px", height: "32px", fontSize: "0.8rem" }}
-              />
+          <div key={member.id} className={ui.listItem}>
+            <div className={css.member}>
+              <Avatar member={member} large />
               <div>
-                <div
-                  style={{ fontWeight: "600", fontSize: "0.9rem", color: "#f8fafc" }}
-                >
-                  {member.name}
-                </div>
+                <div className={css.name}>{member.name}</div>
                 {member.role && (
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
-                    {member.role}
-                  </div>
+                  <div className={css.role}>{member.role}</div>
                 )}
               </div>
             </div>
             <button
               type="button"
               onClick={() => handleDelete(member)}
-              style={styles.deleteBtn}
+              className={cx(ui.iconButton, ui.danger)}
               aria-label={`Remove ${member.name}`}
             >
               ×
@@ -121,7 +107,7 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
           </div>
         ))}
         {teamMembers.length === 0 && (
-          <p style={styles.emptyText}>No team members added yet.</p>
+          <p className={ui.emptyText}>No team members added yet.</p>
         )}
       </div>
     </Modal>

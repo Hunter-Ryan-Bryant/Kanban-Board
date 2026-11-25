@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  cx,
   errorMessage,
   getDueDateStatus,
   getInitials,
@@ -139,6 +140,14 @@ describe("getInitials", () => {
   it("falls back to ? for an empty name", () => {
     expect(getInitials("")).toBe("?");
     expect(getInitials(null)).toBe("?");
+  });
+});
+
+describe("cx", () => {
+  it("joins class names and skips falsy values", () => {
+    const isActive = false;
+    expect(cx("a", isActive && "b", null, undefined, "", "c")).toBe("a c");
+    expect(cx()).toBe("");
   });
 });
 

@@ -1,33 +1,25 @@
-import { getInitials } from "../lib/utils";
-import { styles } from "../styles";
+import { cx, getInitials } from "../lib/utils";
+import css from "./Badges.module.css";
 
-export function LabelBadge({ label, style }) {
+export function LabelBadge({ label, large = false }) {
   return (
     <span
-      style={{
-        ...styles.tagBadge,
-        backgroundColor: `${label.color}25`,
-        color: label.color,
-        border: `1px solid ${label.color}50`,
-        ...style,
-      }}
+      className={cx(css.tag, large && css.tagLarge)}
+      style={{ "--label": label.color }}
     >
       {label.name}
     </span>
   );
 }
 
-export function Avatar({ member, style, title }) {
+export function Avatar({ member, large = false, title }) {
   return (
     <div
       role="img"
       aria-label={title ?? member.name}
-      style={{
-        ...styles.avatarBadge,
-        backgroundColor: member.avatar_color,
-        ...style,
-      }}
       title={title}
+      className={cx(css.avatar, large && css.avatarLarge)}
+      style={{ "--swatch": member.avatar_color }}
     >
       {getInitials(member.name)}
     </div>

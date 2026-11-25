@@ -1,9 +1,7 @@
-import { PRIORITIES } from "../lib/constants";
-import { getDueDateStatus } from "../lib/utils";
-import { styles } from "../styles";
+import { cx, getDueDateStatus } from "../lib/utils";
 import { Avatar, LabelBadge } from "./Badges";
-
-const PRIORITY_STYLE = Object.fromEntries(PRIORITIES.map((p) => [p.id, p]));
+import css from "./TaskCard.module.css";
+import ui from "./ui.module.css";
 
 export default function TaskCard({
   task,
@@ -14,7 +12,6 @@ export default function TaskCard({
   onDragStart,
 }) {
   const dueInfo = getDueDateStatus(task.due_date, task.status);
-  const priority = PRIORITY_STYLE[task.priority] ?? PRIORITY_STYLE.normal;
 
   return (
     <div
@@ -32,28 +29,19 @@ export default function TaskCard({
       role="button"
       tabIndex={0}
       aria-label={`Open task: ${task.title}`}
-      style={{
-        ...styles.card,
-        borderLeft:
-          dueInfo?.type === "overdue" ? "3px solid #ef4444" : "1px solid #374151",
-      }}
+      className={cx(css.card, dueInfo?.type === "overdue" && css.overdue)}
     >
-      <div style={styles.cardHeader}>
-        <span
-          style={{
-            ...styles.priorityBadge,
-            backgroundColor: priority.bg,
-            color: priority.color,
-          }}
-        >
+      <div className={css.header}>
+        <span className={css.priority} data-priority={task.priority}>
           {task.priority}
         </span>
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
-          style={styles.deleteBtn}
+          className={cx(ui.iconButton, ui.danger)}
           title="Delete task"
           aria-label={`Delete task: ${task.title}`}
         >
@@ -62,28 +50,23 @@ export default function TaskCard({
       </div>
 
       {labels.length > 0 && (
-        <div style={styles.cardLabelsRow}>
+        <div className={css.labels}>
           {labels.map((label) => (
             <LabelBadge key={label.id} label={label} />
           ))}
         </div>
       )}
 
-      <h4 style={styles.cardTitle}>{task.title}</h4>
-      {task.description && <p style={styles.cardDesc}>{task.description}</p>}
+      <h3 className={css.title}>{task.title}</h3>
+      {task.description && (
+        <p className={css.description}>{task.description}</p>
+      )}
 
       {(dueInfo || assignee) && (
-        <div style={styles.cardFooter}>
+        <div className={css.footer}>
           <div>
             {dueInfo && (
-              <span
-                style={{
-                  ...styles.dueBadge,
-                  backgroundColor: dueInfo.bg,
-                  color: dueInfo.color,
-                  border: `1px solid ${dueInfo.border}`,
-                }}
-              >
+              <span className={css.due} data-type={dueInfo.type}>
                 <span aria-hidden="true">📅 </span>
                 {dueInfo.label}
               </span>
