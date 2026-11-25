@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { supabase, getOrCreateGuestSession } from "./supabaseClient";
 
 const COLUMNS = [
@@ -136,51 +136,81 @@ export default function App() {
   const [newComment, setNewComment] = useState("");
   const [activityLogs, setActivityLogs] = useState([]);
 
+  // Error reporting
+  const [loadError, setLoadError] = useState(null);
+  const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
+  // Tracks which task the drawer is showing, so slow responses for a
+  // previously opened task don't overwrite the current one.
+  const openTaskIdRef = useRef(null);
+
+  function notify(message) {
+    setToast(message);
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 6000);
+  }
+
+  useEffect(() => () => clearTimeout(toastTimerRef.current), []);
+
+  async function fetchTasks() {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error) setTasks(data || []);
+    return error;
+  }
+
+  async function fetchTeamMembers() {
+    const { data, error } = await supabase
+      .from("team_members")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (!error) setTeamMembers(data || []);
+    return error;
+  }
+
+  async function fetchLabels() {
+    const { data, error } = await supabase
+      .from("labels")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (!error) setLabels(data || []);
+    return error;
+  }
+
+  async function fetchTaskLabels() {
+    const { data, error } = await supabase.from("task_labels").select("*");
+    if (!error) setTaskLabels(data || []);
+    return error;
+  }
+
   useEffect(() => {
     async function init() {
       const activeSession = await getOrCreateGuestSession();
-      if (activeSession) {
-        setSession(activeSession);
+      if (!activeSession) {
+        setLoadError(
+          "Couldn't start a guest session. Check your connection and Supabase configuration.",
+        );
+        setLoading(false);
+        return;
+      }
+      setSession(activeSession);
+      const errors = (
         await Promise.all([
           fetchTasks(),
           fetchTeamMembers(),
           fetchLabels(),
           fetchTaskLabels(),
-        ]);
+        ])
+      ).filter(Boolean);
+      if (errors.length > 0) {
+        setLoadError(`Couldn't load your workspace: ${errors[0].message}`);
       }
       setLoading(false);
     }
     init();
   }, []);
-
-  async function fetchTasks() {
-    const { data } = await supabase
-      .from("tasks")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setTasks(data || []);
-  }
-
-  async function fetchTeamMembers() {
-    const { data } = await supabase
-      .from("team_members")
-      .select("*")
-      .order("created_at", { ascending: true });
-    setTeamMembers(data || []);
-  }
-
-  async function fetchLabels() {
-    const { data } = await supabase
-      .from("labels")
-      .select("*")
-      .order("created_at", { ascending: true });
-    setLabels(data || []);
-  }
-
-  async function fetchTaskLabels() {
-    const { data } = await supabase.from("task_labels").select("*");
-    setTaskLabels(data || []);
-  }
 
   async function handleAddTeamMember(e) {
     e.preventDefault();
@@ -196,23 +226,39 @@ export default function App() {
         },
       ])
       .select();
-    if (!error && data) {
-      setTeamMembers([...teamMembers, data[0]]);
-      setMemberName("");
-      setMemberRole("");
+    if (error || !data) {
+      notify(`Couldn't add team member: ${error?.message ?? "no data returned"}`);
+      return;
     }
+    setTeamMembers((prev) => [...prev, data[0]]);
+    setMemberName("");
+    setMemberRole("");
   }
 
-  async function handleDeleteTeamMember(id) {
-    const { error } = await supabase.from("team_members").delete().eq("id", id);
-    if (!error) {
-      setTeamMembers(teamMembers.filter((m) => m.id !== id));
-      setTasks(
-        tasks.map((t) =>
-          t.assignee_id === id ? { ...t, assignee_id: null } : t,
-        ),
-      );
+  async function handleDeleteTeamMember(member) {
+    if (
+      !window.confirm(
+        `Remove ${member.name}? Tasks assigned to them will become unassigned.`,
+      )
+    )
+      return;
+    const { error } = await supabase
+      .from("team_members")
+      .delete()
+      .eq("id", member.id);
+    if (error) {
+      notify(`Couldn't remove team member: ${error.message}`);
+      return;
     }
+    setTeamMembers((prev) => prev.filter((m) => m.id !== member.id));
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.assignee_id === member.id ? { ...t, assignee_id: null } : t,
+      ),
+    );
+    setSelectedTask((prev) =>
+      prev?.assignee_id === member.id ? { ...prev, assignee_id: null } : prev,
+    );
   }
 
   async function handleAddLabel(e) {
@@ -224,22 +270,35 @@ export default function App() {
         { name: labelName.trim(), color: labelColor, user_id: session.user.id },
       ])
       .select();
-    if (!error && data) {
-      setLabels([...labels, data[0]]);
-      setLabelName("");
+    if (error || !data) {
+      notify(`Couldn't add label: ${error?.message ?? "no data returned"}`);
+      return;
     }
+    setLabels((prev) => [...prev, data[0]]);
+    setLabelName("");
   }
 
-  async function handleDeleteLabel(id) {
-    const { error } = await supabase.from("labels").delete().eq("id", id);
-    if (!error) {
-      setLabels(labels.filter((l) => l.id !== id));
-      setTaskLabels(taskLabels.filter((tl) => tl.label_id !== id));
+  async function handleDeleteLabel(label) {
+    if (
+      !window.confirm(
+        `Delete the "${label.name}" label? It will be removed from every task.`,
+      )
+    )
+      return;
+    const { error } = await supabase.from("labels").delete().eq("id", label.id);
+    if (error) {
+      notify(`Couldn't delete label: ${error.message}`);
+      return;
     }
+    setLabels((prev) => prev.filter((l) => l.id !== label.id));
+    setTaskLabels((prev) => prev.filter((tl) => tl.label_id !== label.id));
   }
 
   async function openTaskDetail(task) {
+    openTaskIdRef.current = task.id;
     setSelectedTask(task);
+    setComments([]);
+    setActivityLogs([]);
     const [commentsRes, activityRes] = await Promise.all([
       supabase
         .from("task_comments")
@@ -252,22 +311,39 @@ export default function App() {
         .eq("task_id", task.id)
         .order("created_at", { ascending: false }),
     ]);
+    if (openTaskIdRef.current !== task.id) return; // user opened another task
+    if (commentsRes.error || activityRes.error) {
+      notify(
+        `Couldn't load task history: ${(commentsRes.error || activityRes.error).message}`,
+      );
+    }
     setComments(commentsRes.data || []);
     setActivityLogs(activityRes.data || []);
   }
 
+  function closeTaskDetail() {
+    openTaskIdRef.current = null;
+    setSelectedTask(null);
+  }
+
   async function logActivity(taskId, action, details) {
     if (!session?.user) return;
-    await supabase
+    // Activity logging is best-effort: a failure here shouldn't undo the
+    // change the user just made, so it's only logged to the console.
+    const { error } = await supabase
       .from("task_activity")
       .insert([{ task_id: taskId, user_id: session.user.id, action, details }]);
-    if (selectedTask?.id === taskId) {
+    if (error) {
+      console.warn("Failed to log activity:", error.message);
+      return;
+    }
+    if (openTaskIdRef.current === taskId) {
       const { data } = await supabase
         .from("task_activity")
         .select("*")
         .eq("task_id", taskId)
         .order("created_at", { ascending: false });
-      setActivityLogs(data || []);
+      if (data && openTaskIdRef.current === taskId) setActivityLogs(data);
     }
   }
 
@@ -278,7 +354,10 @@ export default function App() {
     let activeSession = session;
     if (!activeSession?.user) {
       activeSession = await getOrCreateGuestSession();
-      if (!activeSession?.user) return;
+      if (!activeSession?.user) {
+        notify("Couldn't create task: no active session.");
+        return;
+      }
       setSession(activeSession);
     }
 
@@ -297,52 +376,71 @@ export default function App() {
       ])
       .select();
 
-    if (!error && data) {
-      const newTask = data[0];
-      if (selectedLabels.length > 0) {
-        const labelInserts = selectedLabels.map((label_id) => ({
-          task_id: newTask.id,
-          label_id,
-          user_id: activeSession.user.id,
-        }));
-        const { data: tlData } = await supabase
-          .from("task_labels")
-          .insert(labelInserts)
-          .select();
-        if (tlData) setTaskLabels([...taskLabels, ...tlData]);
-      }
-
-      setTasks([newTask, ...tasks]);
-      await logActivity(newTask.id, "created", "Task created in workspace");
-      setTitle("");
-      setDescription("");
-      setPriority("normal");
-      setStatus("todo");
-      setDueDate("");
-      setAssigneeId("");
-      setSelectedLabels([]);
-      setIsModalOpen(false);
+    if (error || !data) {
+      notify(`Couldn't create task: ${error?.message ?? "no data returned"}`);
+      return;
     }
+
+    const newTask = data[0];
+    setTasks((prev) => [newTask, ...prev]);
+
+    if (selectedLabels.length > 0) {
+      const labelInserts = selectedLabels.map((label_id) => ({
+        task_id: newTask.id,
+        label_id,
+        user_id: activeSession.user.id,
+      }));
+      const { data: tlData, error: tlError } = await supabase
+        .from("task_labels")
+        .insert(labelInserts)
+        .select();
+      if (tlError) {
+        notify(`Task created, but labels couldn't be added: ${tlError.message}`);
+      } else if (tlData) {
+        setTaskLabels((prev) => [...prev, ...tlData]);
+      }
+    }
+
+    setTitle("");
+    setDescription("");
+    setPriority("normal");
+    setStatus("todo");
+    setDueDate("");
+    setAssigneeId("");
+    setSelectedLabels([]);
+    setIsModalOpen(false);
+    await logActivity(newTask.id, "created", "Task created in workspace");
   }
 
-  async function handleDeleteTask(taskId, e) {
+  async function handleDeleteTask(task, e) {
     if (e) e.stopPropagation();
-    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
-    if (!error) {
-      setTasks(tasks.filter((t) => t.id !== taskId));
-      setTaskLabels(taskLabels.filter((tl) => tl.task_id !== taskId));
-      if (selectedTask?.id === taskId) setSelectedTask(null);
+    if (!window.confirm(`Delete "${task.title}"? This can't be undone.`)) return;
+    const { error } = await supabase.from("tasks").delete().eq("id", task.id);
+    if (error) {
+      notify(`Couldn't delete task: ${error.message}`);
+      return;
     }
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    setTaskLabels((prev) => prev.filter((tl) => tl.task_id !== task.id));
+    if (openTaskIdRef.current === task.id) closeTaskDetail();
   }
 
   async function handleToggleTaskLabel(taskId, labelId) {
+    if (!session?.user) return;
     const exists = taskLabels.find(
       (tl) => tl.task_id === taskId && tl.label_id === labelId,
     );
     if (exists) {
-      await supabase.from("task_labels").delete().eq("id", exists.id);
-      setTaskLabels(taskLabels.filter((tl) => tl.id !== exists.id));
-      await logActivity(taskId, "label_removed", `Removed label`);
+      const { error } = await supabase
+        .from("task_labels")
+        .delete()
+        .eq("id", exists.id);
+      if (error) {
+        notify(`Couldn't remove label: ${error.message}`);
+        return;
+      }
+      setTaskLabels((prev) => prev.filter((tl) => tl.id !== exists.id));
+      await logActivity(taskId, "label_removed", "Removed label");
     } else {
       const { data, error } = await supabase
         .from("task_labels")
@@ -350,47 +448,92 @@ export default function App() {
           { task_id: taskId, label_id: labelId, user_id: session.user.id },
         ])
         .select();
-      if (!error && data) {
-        setTaskLabels([...taskLabels, data[0]]);
-        await logActivity(taskId, "label_added", `Added label`);
+      if (error || !data) {
+        notify(`Couldn't add label: ${error?.message ?? "no data returned"}`);
+        return;
       }
+      setTaskLabels((prev) => [...prev, data[0]]);
+      await logActivity(taskId, "label_added", "Added label");
     }
   }
 
   async function handleAddComment(e) {
     e.preventDefault();
-    if (!newComment.trim() || !selectedTask) return;
+    if (!newComment.trim() || !selectedTask || !session?.user) return;
+    const taskId = selectedTask.id;
     const { data, error } = await supabase
       .from("task_comments")
       .insert([
         {
-          task_id: selectedTask.id,
+          task_id: taskId,
           user_id: session.user.id,
           body: newComment.trim(),
         },
       ])
       .select();
-    if (!error && data) {
-      setComments([...comments, data[0]]);
-      await logActivity(selectedTask.id, "commented", "Added a comment");
-      setNewComment("");
+    if (error || !data) {
+      notify(`Couldn't post comment: ${error?.message ?? "no data returned"}`);
+      return;
     }
+    if (openTaskIdRef.current === taskId) {
+      setComments((prev) => [...prev, data[0]]);
+    }
+    setNewComment("");
+    await logActivity(taskId, "commented", "Added a comment");
   }
 
-  async function handleUpdateTaskField(field, value) {
+  // Updates the drawer's copy of a field without saving. Used for text
+  // inputs so the database is only written once, on blur.
+  function handleEditTaskField(field, value) {
+    setSelectedTask((prev) => (prev ? { ...prev, [field]: value } : prev));
+  }
+
+  // Saves a field if it differs from the last saved value. On failure the
+  // board and drawer are rolled back to the saved value.
+  async function handleSaveTaskField(field, value) {
     if (!selectedTask) return;
-    const dbValue = value === "" ? null : value;
-    const updated = { ...selectedTask, [field]: dbValue };
-    setSelectedTask(updated);
-    setTasks(tasks.map((t) => (t.id === updated.id ? updated : t)));
-    await supabase
+    const taskId = selectedTask.id;
+    const saved = tasks.find((t) => t.id === taskId);
+    if (!saved) return;
+
+    const normalize = (v) => (v === "" || v === undefined ? null : v);
+    let dbValue = normalize(value);
+    if (field === "title") dbValue = normalize(value.trim());
+    const previous = saved[field];
+
+    const apply = (v) => {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, [field]: v } : t)),
+      );
+      setSelectedTask((prev) =>
+        prev?.id === taskId ? { ...prev, [field]: v } : prev,
+      );
+    };
+
+    if (field === "title" && dbValue === null) {
+      notify("Title can't be empty.");
+      apply(previous);
+      return;
+    }
+    if (normalize(previous) === dbValue) {
+      apply(previous); // drop any cosmetic difference (e.g. trailing spaces)
+      return;
+    }
+
+    apply(dbValue);
+    const { error } = await supabase
       .from("tasks")
       .update({ [field]: dbValue })
-      .eq("id", updated.id);
+      .eq("id", taskId);
+    if (error) {
+      apply(previous);
+      notify(`Couldn't save ${field.replace("_", " ")}: ${error.message}`);
+      return;
+    }
     await logActivity(
-      updated.id,
+      taskId,
       "updated",
-      `Changed ${field} to "${dbValue || "none"}"`,
+      `Changed ${field} to "${dbValue ?? "none"}"`,
     );
   }
 
@@ -405,32 +548,37 @@ export default function App() {
 
   async function handleDrop(e, targetStatus) {
     e.preventDefault();
-    if (!draggedTaskId) return;
-    const taskToMove = tasks.find((t) => t.id === draggedTaskId);
+    const taskId = draggedTaskId;
+    setDraggedTaskId(null);
+    if (!taskId) return;
+    const taskToMove = tasks.find((t) => t.id === taskId);
     if (!taskToMove || taskToMove.status === targetStatus) return;
+    const previousStatus = taskToMove.status;
 
-    setTasks(
-      tasks.map((t) =>
-        t.id === draggedTaskId ? { ...t, status: targetStatus } : t,
-      ),
-    );
-    if (selectedTask?.id === draggedTaskId)
-      setSelectedTask((prev) => ({ ...prev, status: targetStatus }));
+    const applyStatus = (s) => {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: s } : t)),
+      );
+      setSelectedTask((prev) =>
+        prev?.id === taskId ? { ...prev, status: s } : prev,
+      );
+    };
 
+    applyStatus(targetStatus);
     const { error } = await supabase
       .from("tasks")
       .update({ status: targetStatus })
-      .eq("id", draggedTaskId);
-    if (!error) {
-      await logActivity(
-        draggedTaskId,
-        "moved_column",
-        `Moved from ${taskToMove.status} to ${targetStatus}`,
-      );
-    } else {
-      fetchTasks();
+      .eq("id", taskId);
+    if (error) {
+      applyStatus(previousStatus);
+      notify(`Couldn't move task: ${error.message}`);
+      return;
     }
-    setDraggedTaskId(null);
+    await logActivity(
+      taskId,
+      "moved_column",
+      `Moved from ${previousStatus} to ${targetStatus}`,
+    );
   }
 
   const memberMap = useMemo(() => {
@@ -514,6 +662,22 @@ export default function App() {
     urgencyFilter !== "all" ||
     assigneeFilter !== "all" ||
     labelFilter !== "all";
+
+  if (loadError) {
+    return (
+      <div style={styles.loaderContainer}>
+        <p style={{ color: "#fca5a5", maxWidth: "28rem", textAlign: "center" }}>
+          {loadError}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ ...styles.primaryButton, marginTop: "1rem" }}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -724,7 +888,7 @@ export default function App() {
                           {task.priority}
                         </span>
                         <button
-                          onClick={(e) => handleDeleteTask(task.id, e)}
+                          onClick={(e) => handleDeleteTask(task, e)}
                           style={styles.deleteBtn}
                           title="Delete task"
                         >
@@ -890,7 +1054,7 @@ export default function App() {
                     {l.name}
                   </span>
                   <button
-                    onClick={() => handleDeleteLabel(l.id)}
+                    onClick={() => handleDeleteLabel(l)}
                     style={styles.deleteBtn}
                   >
                     ×
@@ -1028,7 +1192,7 @@ export default function App() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleDeleteTeamMember(member.id)}
+                    onClick={() => handleDeleteTeamMember(member)}
                     style={styles.deleteBtn}
                   >
                     ×
@@ -1045,7 +1209,7 @@ export default function App() {
 
       {/* Task Detail Slide-Over Drawer */}
       {selectedTask && (
-        <div style={styles.drawerOverlay} onClick={() => setSelectedTask(null)}>
+        <div style={styles.drawerOverlay} onClick={closeTaskDetail}>
           <div
             style={styles.drawerContent}
             onClick={(e) => e.stopPropagation()}
@@ -1053,7 +1217,7 @@ export default function App() {
             <div style={styles.drawerHeader}>
               <h2 style={styles.drawerHeaderTitle}>Task Details</h2>
               <button
-                onClick={() => setSelectedTask(null)}
+                onClick={closeTaskDetail}
                 style={styles.closeButton}
               >
                 ×
@@ -1066,8 +1230,12 @@ export default function App() {
                   type="text"
                   value={selectedTask.title}
                   onChange={(e) =>
-                    handleUpdateTaskField("title", e.target.value)
+                    handleEditTaskField("title", e.target.value)
                   }
+                  onBlur={(e) => handleSaveTaskField("title", e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                  }}
                   style={styles.input}
                 />
               </div>
@@ -1076,7 +1244,10 @@ export default function App() {
                 <textarea
                   value={selectedTask.description || ""}
                   onChange={(e) =>
-                    handleUpdateTaskField("description", e.target.value)
+                    handleEditTaskField("description", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    handleSaveTaskField("description", e.target.value)
                   }
                   rows={3}
                   style={styles.textarea}
@@ -1137,7 +1308,7 @@ export default function App() {
                   <select
                     value={selectedTask.status}
                     onChange={(e) =>
-                      handleUpdateTaskField("status", e.target.value)
+                      handleSaveTaskField("status", e.target.value)
                     }
                     style={styles.input}
                   >
@@ -1153,7 +1324,7 @@ export default function App() {
                   <select
                     value={selectedTask.priority}
                     onChange={(e) =>
-                      handleUpdateTaskField("priority", e.target.value)
+                      handleSaveTaskField("priority", e.target.value)
                     }
                     style={styles.input}
                   >
@@ -1169,7 +1340,7 @@ export default function App() {
                   <select
                     value={selectedTask.assignee_id || ""}
                     onChange={(e) =>
-                      handleUpdateTaskField("assignee_id", e.target.value)
+                      handleSaveTaskField("assignee_id", e.target.value)
                     }
                     style={styles.input}
                   >
@@ -1187,7 +1358,7 @@ export default function App() {
                     type="date"
                     value={selectedTask.due_date || ""}
                     onChange={(e) =>
-                      handleUpdateTaskField("due_date", e.target.value)
+                      handleSaveTaskField("due_date", e.target.value)
                     }
                     style={styles.input}
                   />
@@ -1407,11 +1578,51 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {toast && (
+        <div role="alert" style={styles.toast}>
+          <span>{toast}</span>
+          <button
+            onClick={() => setToast(null)}
+            style={styles.toastClose}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
 const styles = {
+  toast: {
+    position: "fixed",
+    bottom: "1.5rem",
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.75rem",
+    maxWidth: "min(32rem, calc(100vw - 2rem))",
+    padding: "0.75rem 1rem",
+    backgroundColor: "#450a0a",
+    color: "#fecaca",
+    border: "1px solid #991b1b",
+    borderRadius: "8px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.4)",
+    fontSize: "0.875rem",
+    zIndex: 1000,
+  },
+  toastClose: {
+    background: "none",
+    border: "none",
+    color: "inherit",
+    fontSize: "1.25rem",
+    lineHeight: 1,
+    cursor: "pointer",
+    padding: 0,
+  },
   appContainer: {
     minHeight: "100vh",
     backgroundColor: "#090d16",
