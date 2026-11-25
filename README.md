@@ -64,7 +64,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/rm9v27j9jv-collab/Kanban-Board.git
+git clone https://github.com/Hunter-Ryan-Bryant/Kanban-Board.git
 cd Kanban-Board
 npm install
 ```
