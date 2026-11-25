@@ -1,9 +1,18 @@
 import { styles } from "../styles";
 
 // Toggle buttons for attaching labels, used by the new-task form and drawer.
-export default function LabelPicker({ labels, selectedIds, onToggle, emptyText }) {
+// `labelId` names the group.
+export default function LabelPicker({
+  labels,
+  selectedIds,
+  onToggle,
+  emptyText,
+  labelId,
+}) {
   return (
     <div
+      role="group"
+      aria-labelledby={labelId}
       style={{
         display: "flex",
         flexWrap: "wrap",
@@ -18,6 +27,7 @@ export default function LabelPicker({ labels, selectedIds, onToggle, emptyText }
             key={l.id}
             type="button"
             onClick={() => onToggle(l.id)}
+            aria-pressed={isSelected}
             style={{
               backgroundColor: isSelected ? `${l.color}35` : "#1f2937",
               color: isSelected ? l.color : "#94a3b8",
@@ -29,7 +39,7 @@ export default function LabelPicker({ labels, selectedIds, onToggle, emptyText }
               cursor: "pointer",
             }}
           >
-            {isSelected ? "✓ " : "+ "}
+            <span aria-hidden="true">{isSelected ? "✓ " : "+ "}</span>
             {l.name}
           </button>
         );

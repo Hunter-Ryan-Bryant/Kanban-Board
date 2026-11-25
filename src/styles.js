@@ -85,7 +85,7 @@ export const styles = {
     margin: 0,
     letterSpacing: "-0.025em",
   },
-  subtitle: { fontSize: "0.875rem", color: "#64748b", margin: "0.25rem 0 0 0" },
+  subtitle: { fontSize: "0.875rem", color: "#94a3b8", margin: "0.25rem 0 0 0" },
   realtimeStatus: {
     display: "inline-flex",
     alignItems: "center",
@@ -130,7 +130,6 @@ export const styles = {
     padding: "0.55rem 0.75rem 0.55rem 2.25rem",
     color: "#f8fafc",
     fontSize: "0.875rem",
-    outline: "none",
   },
   filterGroup: {
     display: "flex",
@@ -146,7 +145,6 @@ export const styles = {
     color: "#e2e8f0",
     fontSize: "0.85rem",
     cursor: "pointer",
-    outline: "none",
   },
   clearButton: {
     backgroundColor: "#1e293b",
@@ -169,7 +167,7 @@ export const styles = {
     fontSize: "0.875rem",
   },
   primaryButton: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#2563eb",
     color: "#ffffff",
     border: "none",
     padding: "0.625rem 1.25rem",
@@ -179,7 +177,7 @@ export const styles = {
     fontSize: "0.875rem",
   },
   secondaryButton: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#2563eb",
     color: "#ffffff",
     border: "none",
     padding: "0.55rem 1rem",
@@ -265,7 +263,7 @@ export const styles = {
   deleteBtn: {
     background: "none",
     border: "none",
-    color: "#6b7280",
+    color: "#9ca3af",
     fontSize: "1.25rem",
     cursor: "pointer",
     padding: 0,
@@ -332,7 +330,7 @@ export const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "#4b5563",
+    color: "#94a3b8",
     fontSize: "0.85rem",
     border: "2px dashed #1f2937",
     borderRadius: "6px",
@@ -392,7 +390,9 @@ export const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "0.625rem",
-    marginBottom: "0.75rem",
+    margin: "0 0 0.75rem 0",
+    padding: 0,
+    listStyle: "none",
   },
   commentItem: {
     backgroundColor: "#1f2937",
@@ -407,7 +407,14 @@ export const styles = {
   },
   commentDate: { fontSize: "0.7rem", color: "#94a3b8" },
   commentForm: { display: "flex", gap: "0.5rem" },
-  activityList: { display: "flex", flexDirection: "column", gap: "0.5rem" },
+  activityList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+    margin: 0,
+    padding: 0,
+    listStyle: "none",
+  },
   activityItem: {
     display: "flex",
     justifyContent: "space-between",
@@ -418,8 +425,8 @@ export const styles = {
     borderRadius: "4px",
   },
   activityText: { color: "#cbd5e1" },
-  activityDate: { color: "#64748b" },
-  emptyText: { fontSize: "0.82rem", color: "#64748b", fontStyle: "italic" },
+  activityDate: { color: "#94a3b8" },
+  emptyText: { fontSize: "0.82rem", color: "#94a3b8", fontStyle: "italic" },
   modalOverlay: {
     position: "fixed",
     top: 0,
@@ -473,7 +480,6 @@ export const styles = {
     padding: "0.625rem",
     color: "#f9fafb",
     fontSize: "0.875rem",
-    outline: "none",
     flex: 1,
   },
   textarea: {
@@ -483,7 +489,6 @@ export const styles = {
     padding: "0.625rem",
     color: "#f9fafb",
     fontSize: "0.875rem",
-    outline: "none",
     resize: "vertical",
   },
   modalActions: {

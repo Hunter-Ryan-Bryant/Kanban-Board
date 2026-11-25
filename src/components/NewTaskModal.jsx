@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { styles } from "../styles";
 import LabelPicker from "./LabelPicker";
 import Modal from "./Modal";
@@ -16,14 +16,17 @@ const EMPTY_TASK = {
 export default function NewTaskModal({ labels, teamMembers, onCreate, onClose }) {
   const [values, setValues] = useState(EMPTY_TASK);
   const [labelIds, setLabelIds] = useState([]);
+  const id = useId();
 
   function setField(field, value) {
     setValues((prev) => ({ ...prev, [field]: value }));
   }
 
-  function toggleLabel(id) {
+  function toggleLabel(labelId) {
     setLabelIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+      prev.includes(labelId)
+        ? prev.filter((x) => x !== labelId)
+        : [...prev, labelId],
     );
   }
 
@@ -38,8 +41,12 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
     <Modal title="Create New Task" onClose={onClose} closeOnOverlayClick={false}>
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Task Title *</label>
+          <label htmlFor={`${id}-title`} style={styles.label}>
+            Task Title *
+          </label>
           <input
+            id={`${id}-title`}
+            data-autofocus
             type="text"
             value={values.title}
             onChange={(e) => setField("title", e.target.value)}
@@ -49,8 +56,11 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
           />
         </div>
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Description</label>
+          <label htmlFor={`${id}-description`} style={styles.label}>
+            Description
+          </label>
           <textarea
+            id={`${id}-description`}
             value={values.description}
             onChange={(e) => setField("description", e.target.value)}
             rows={3}
@@ -60,8 +70,11 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
         </div>
 
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Labels</label>
+          <span id={`${id}-labels`} style={styles.label}>
+            Labels
+          </span>
           <LabelPicker
+            labelId={`${id}-labels`}
             labels={labels}
             selectedIds={labelIds}
             onToggle={toggleLabel}

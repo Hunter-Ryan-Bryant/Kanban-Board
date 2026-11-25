@@ -11,12 +11,15 @@ export default function Toolbar({
   return (
     <div style={styles.toolbar}>
       <div style={styles.searchWrapper}>
-        <span style={styles.searchIcon}>🔍</span>
+        <span aria-hidden="true" style={styles.searchIcon}>
+          🔍
+        </span>
         <input
           type="text"
           value={filters.search}
           onChange={(e) => setFilter("search", e.target.value)}
           placeholder="Search tasks..."
+          aria-label="Search tasks"
           style={styles.searchInput}
         />
       </div>
@@ -24,6 +27,7 @@ export default function Toolbar({
         <select
           value={filters.label}
           onChange={(e) => setFilter("label", e.target.value)}
+          aria-label="Filter by label"
           style={styles.filterSelect}
         >
           <option value="all">All Labels</option>
@@ -36,6 +40,7 @@ export default function Toolbar({
         <select
           value={filters.assignee}
           onChange={(e) => setFilter("assignee", e.target.value)}
+          aria-label="Filter by assignee"
           style={styles.filterSelect}
         >
           <option value="all">All Assignees</option>
@@ -49,6 +54,7 @@ export default function Toolbar({
         <select
           value={filters.priority}
           onChange={(e) => setFilter("priority", e.target.value)}
+          aria-label="Filter by priority"
           style={styles.filterSelect}
         >
           <option value="all">All Priorities</option>
@@ -59,6 +65,7 @@ export default function Toolbar({
         <select
           value={filters.urgency}
           onChange={(e) => setFilter("urgency", e.target.value)}
+          aria-label="Filter by due date"
           style={styles.filterSelect}
         >
           <option value="all">All Due Dates</option>
@@ -66,7 +73,12 @@ export default function Toolbar({
           <option value="due_soon">Due Today / Soon</option>
         </select>
         {hasActiveFilters && (
-          <button onClick={clearFilters} style={styles.clearButton}>
+          <button
+            type="button"
+            onClick={clearFilters}
+            style={styles.clearButton}
+            aria-label="Clear all filters"
+          >
             Clear
           </button>
         )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { AVATAR_COLORS } from "../lib/constants";
 import { styles } from "../styles";
 import { Avatar } from "./Badges";
@@ -9,6 +9,7 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [color, setColor] = useState(AVATAR_COLORS[0]);
+  const id = useId();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -36,8 +37,12 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
       >
         <div style={styles.rowGroup}>
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>Name *</label>
+            <label htmlFor={`${id}-name`} style={styles.label}>
+              Name *
+            </label>
             <input
+              id={`${id}-name`}
+              data-autofocus
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -47,8 +52,11 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
             />
           </div>
           <div style={styles.fieldGroup}>
-            <label style={styles.label}>Role</label>
+            <label htmlFor={`${id}-role`} style={styles.label}>
+              Role
+            </label>
             <input
+              id={`${id}-role`}
               type="text"
               value={role}
               onChange={(e) => setRole(e.target.value)}
@@ -58,8 +66,15 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
           </div>
         </div>
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Avatar Color</label>
-          <ColorSwatches colors={AVATAR_COLORS} value={color} onChange={setColor}>
+          <span id={`${id}-color`} style={styles.label}>
+            Avatar Color
+          </span>
+          <ColorSwatches
+            colors={AVATAR_COLORS}
+            value={color}
+            onChange={setColor}
+            labelId={`${id}-color`}
+          >
             <button
               type="submit"
               style={{
@@ -95,7 +110,12 @@ export default function TeamModal({ teamMembers, onAdd, onDelete, onClose }) {
                 )}
               </div>
             </div>
-            <button onClick={() => handleDelete(member)} style={styles.deleteBtn}>
+            <button
+              type="button"
+              onClick={() => handleDelete(member)}
+              style={styles.deleteBtn}
+              aria-label={`Remove ${member.name}`}
+            >
               ×
             </button>
           </div>

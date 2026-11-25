@@ -26,6 +26,41 @@ p {
   margin: 0;
 }
 
+/* Visible keyboard focus everywhere. Inline styles can't target :focus-visible,
+   so components must not set `outline` themselves. */
+:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Dialogs and drawers receive focus programmatically; no ring on the panel. */
+[role="dialog"]:focus {
+  outline: none;
+}
+
+/* Hidden visually but still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Used by styles.spinner; inline styles can't declare keyframes. */
 @keyframes spin {
   to {

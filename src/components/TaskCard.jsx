@@ -21,6 +21,17 @@ export default function TaskCard({
       draggable
       onDragStart={onDragStart}
       onClick={onOpen}
+      onKeyDown={(e) => {
+        // Ignore keys from the delete button inside the card.
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open task: ${task.title}`}
       style={{
         ...styles.card,
         borderLeft:
@@ -44,6 +55,7 @@ export default function TaskCard({
           }}
           style={styles.deleteBtn}
           title="Delete task"
+          aria-label={`Delete task: ${task.title}`}
         >
           ×
         </button>
@@ -72,7 +84,8 @@ export default function TaskCard({
                   border: `1px solid ${dueInfo.border}`,
                 }}
               >
-                📅 {dueInfo.label}
+                <span aria-hidden="true">📅 </span>
+                {dueInfo.label}
               </span>
             )}
           </div>

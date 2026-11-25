@@ -30,7 +30,7 @@ export default function App() {
 
   if (workspace.loadError) {
     return (
-      <div style={styles.loaderContainer}>
+      <div role="alert" style={styles.loaderContainer}>
         <p style={{ color: "#fca5a5", maxWidth: "28rem", textAlign: "center" }}>
           {workspace.loadError}
         </p>
@@ -46,8 +46,8 @@ export default function App() {
 
   if (workspace.loading) {
     return (
-      <div style={styles.loaderContainer}>
-        <div style={styles.spinner}></div>
+      <div role="status" style={styles.loaderContainer}>
+        <div aria-hidden="true" style={styles.spinner}></div>
         <p style={{ color: "#94a3b8", marginTop: "1rem" }}>
           Loading workspace...
         </p>
@@ -56,7 +56,7 @@ export default function App() {
   }
 
   return (
-    <div style={styles.appContainer}>
+    <main style={styles.appContainer}>
       <Header
         tasks={workspace.tasks}
         realtimeStatus={workspace.realtimeStatus}
@@ -121,6 +121,6 @@ export default function App() {
       )}
 
       <Toast message={toast.message} onDismiss={toast.dismiss} />
-    </div>
+    </main>
   );
 }
