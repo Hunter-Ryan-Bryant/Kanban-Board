@@ -59,7 +59,7 @@ export default function Header({
       <div>
         <h1 className={css.logo}>Kanban Workspace</h1>
         <p className={css.subtitle}>
-          Guest Session Active • Custom Tags, Assignments & Audit Logs
+          Guest workspace · saved automatically to this browser
         </p>
         <p role="status" className={css.realtimeStatus} title={realtime.title}>
           <span

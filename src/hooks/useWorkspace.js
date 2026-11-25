@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, getOrCreateGuestSession } from "../supabaseClient";
+import {
+  describeFieldChange,
+  describeLabelChange,
+  describeMove,
+} from "../lib/activity";
 import { errorMessage, indexById, removeById, upsertById } from "../lib/utils";
 
 function fetchWorkspace() {
@@ -286,7 +291,7 @@ export function useWorkspace(notify) {
       }
     }
 
-    logActivity(newTask.id, "created", "Task created in workspace");
+    logActivity(newTask.id, "created", "Created the task");
     return true;
   }
 
@@ -332,7 +337,7 @@ export function useWorkspace(notify) {
     }
     const { action, details } = activity?.(previous, next) ?? {
       action: "updated",
-      details: `Changed ${field} to "${next ?? "none"}"`,
+      details: describeFieldChange(field, next, { memberMap }),
     };
     return logActivity(taskId, action, details);
   }
@@ -340,7 +345,7 @@ export function useWorkspace(notify) {
   function moveTask(taskId, status) {
     return updateTaskField(taskId, "status", status, (from, to) => ({
       action: "moved_column",
-      details: `Moved from ${from} to ${to}`,
+      details: describeMove(from, to),
     }));
   }
 
@@ -360,7 +365,11 @@ export function useWorkspace(notify) {
         return null;
       }
       setTaskLabels((prev) => removeById(prev, existing.id));
-      return logActivity(taskId, "label_removed", "Removed label");
+      return logActivity(
+        taskId,
+        "label_removed",
+        describeLabelChange(false, labelMap[labelId]),
+      );
     }
 
     const { data, error } = await supabase
@@ -372,7 +381,11 @@ export function useWorkspace(notify) {
       return null;
     }
     setTaskLabels((prev) => upsertById(prev, data[0]));
-    return logActivity(taskId, "label_added", "Added label");
+    return logActivity(
+      taskId,
+      "label_added",
+      describeLabelChange(true, labelMap[labelId]),
+    );
   }
 
   return {

@@ -37,10 +37,68 @@ export function getInitials(name) {
     .toUpperCase();
 }
 
-export function formatTime(timestamp) {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function startOfDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// Parses a "YYYY-MM-DD" date column as a local date (not UTC midnight,
+// which can land on the previous day west of Greenwich).
+function parseDateOnly(dateStr) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+// A comment or activity time, as short as it can be without being ambiguous:
+// "3:40 PM" today, "Yesterday, 3:40 PM", "Mon, 3:40 PM" within the past
+// week, "Nov 3, 3:40 PM" this year, else "Nov 3, 2025".
+// `locale` defaults to the user's; tests pass one for stable output.
+export function formatTimestamp(timestamp, { locale, now = new Date() } = {}) {
+  const date = new Date(timestamp);
+  const time = date.toLocaleTimeString(locale, {
+    hour: "numeric",
     minute: "2-digit",
+  });
+  const daysAgo = Math.round((startOfDay(now) - startOfDay(date)) / DAY_MS);
+
+  if (daysAgo <= 0) return time;
+  if (daysAgo === 1) return `Yesterday, ${time}`;
+  if (daysAgo < 7) {
+    return `${date.toLocaleDateString(locale, { weekday: "short" })}, ${time}`;
+  }
+  if (date.getFullYear() === now.getFullYear()) {
+    const day = date.toLocaleDateString(locale, {
+      month: "short",
+      day: "numeric",
+    });
+    return `${day}, ${time}`;
+  }
+  return date.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+// Full date and time, for a tooltip next to formatTimestamp's short form.
+export function formatFullTimestamp(timestamp, { locale } = {}) {
+  return new Date(timestamp).toLocaleString(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+// A "YYYY-MM-DD" due date as "Nov 28", adding the year when it isn't the
+// current one ("Jan 4, 2027").
+export function formatDueDate(dateStr, { locale, now = new Date() } = {}) {
+  const date = parseDateOnly(dateStr);
+  return date.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    ...(date.getFullYear() !== now.getFullYear() && { year: "numeric" }),
   });
 }
 
@@ -51,22 +109,20 @@ export function cx(...classes) {
 
 // Returns { type, label } for a task's due date, or null without one.
 // `type` is "completed", "overdue", "due_soon" or "upcoming"; TaskCard
-// colors the badge from it.
-export function getDueDateStatus(dueDateStr, taskStatus) {
+// colors the badge from it. `locale` is passed through to formatDueDate.
+export function getDueDateStatus(dueDateStr, taskStatus, { locale } = {}) {
   if (!dueDateStr) return null;
-  if (taskStatus === "done") return { type: "completed", label: dueDateStr };
+  const now = new Date();
+  const date = formatDueDate(dueDateStr, { locale, now });
+  if (taskStatus === "done") return { type: "completed", label: date };
 
-  const [year, month, day] = dueDateStr.split("-").map(Number);
-  const due = new Date(year, month - 1, day);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round(
+    (parseDateOnly(dueDateStr) - startOfDay(now)) / DAY_MS,
+  );
 
-  const diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) {
-    return { type: "overdue", label: `Overdue (${dueDateStr})` };
-  }
-  if (diffDays === 0) return { type: "due_soon", label: "Due Today" };
-  if (diffDays <= 2) return { type: "due_soon", label: `Due in ${diffDays}d` };
-  return { type: "upcoming", label: dueDateStr };
+  if (diffDays < 0) return { type: "overdue", label: `Overdue · ${date}` };
+  if (diffDays === 0) return { type: "due_soon", label: "Due today" };
+  if (diffDays === 1) return { type: "due_soon", label: "Due tomorrow" };
+  if (diffDays <= 2) return { type: "due_soon", label: `Due in ${diffDays} days` };
+  return { type: "upcoming", label: date };
 }

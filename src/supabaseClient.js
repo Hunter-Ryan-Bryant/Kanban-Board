@@ -10,8 +10,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Helper to ensure guest session
-export async function getOrCreateGuestSession() {
+async function resolveGuestSession() {
   const {
     data: { session },
     error: sessionError,
@@ -21,15 +20,28 @@ export async function getOrCreateGuestSession() {
     console.error("Session error:", sessionError.message);
     return null;
   }
+  if (session) return session;
 
-  if (!session) {
-    const { data, error: authError } = await supabase.auth.signInAnonymously();
-    if (authError) {
-      console.error("Anonymous sign-in failed:", authError.message);
-      return null;
-    }
-    return data.session;
+  const { data, error: authError } = await supabase.auth.signInAnonymously();
+  if (authError) {
+    console.error("Anonymous sign-in failed:", authError.message);
+    return null;
   }
+  return data.session;
+}
 
-  return session;
+// Concurrent callers share one in-flight lookup. Without this, React's
+// StrictMode (which runs startup effects twice in development) could call
+// signInAnonymously() twice on a first visit and create two guest users.
+let pending = null;
+
+// Returns the current session, signing in as a new anonymous guest if there
+// isn't one. Resolves to null on failure.
+export function getOrCreateGuestSession() {
+  if (!pending) {
+    pending = resolveGuestSession().finally(() => {
+      pending = null;
+    });
+  }
+  return pending;
 }

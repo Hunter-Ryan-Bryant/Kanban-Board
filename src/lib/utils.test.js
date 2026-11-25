@@ -2,12 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   cx,
   errorMessage,
+  formatDueDate,
+  formatTimestamp,
   getDueDateStatus,
   getInitials,
   indexById,
   removeById,
   upsertById,
 } from "./utils";
+
+const en = { locale: "en-US" };
 
 describe("getDueDateStatus", () => {
   beforeEach(() => {
@@ -25,48 +29,93 @@ describe("getDueDateStatus", () => {
   });
 
   it("marks done tasks as completed even when the date has passed", () => {
-    expect(getDueDateStatus("2026-01-01", "done")).toMatchObject({
+    expect(getDueDateStatus("2026-01-01", "done", en)).toEqual({
       type: "completed",
-      label: "2026-01-01",
+      label: "Jan 1",
     });
   });
 
   it("marks past dates as overdue", () => {
-    expect(getDueDateStatus("2026-11-24", "todo")).toMatchObject({
+    expect(getDueDateStatus("2026-11-24", "todo", en)).toEqual({
       type: "overdue",
-      label: "Overdue (2026-11-24)",
+      label: "Overdue · Nov 24",
     });
   });
 
-  it("marks today as due today", () => {
-    expect(getDueDateStatus("2026-11-25", "in_progress")).toMatchObject({
+  it("marks today and the next two days as due soon", () => {
+    expect(getDueDateStatus("2026-11-25", "in_progress", en)).toEqual({
       type: "due_soon",
-      label: "Due Today",
+      label: "Due today",
     });
-  });
-
-  it("marks the next two days as due soon", () => {
-    expect(getDueDateStatus("2026-11-26", "todo")).toMatchObject({
-      type: "due_soon",
-      label: "Due in 1d",
-    });
-    expect(getDueDateStatus("2026-11-27", "todo")).toMatchObject({
-      type: "due_soon",
-      label: "Due in 2d",
-    });
+    expect(getDueDateStatus("2026-11-26", "todo", en)?.label).toBe(
+      "Due tomorrow",
+    );
+    expect(getDueDateStatus("2026-11-27", "todo", en)?.label).toBe(
+      "Due in 2 days",
+    );
   });
 
   it("marks later dates as upcoming", () => {
-    expect(getDueDateStatus("2026-11-28", "todo")).toMatchObject({
+    expect(getDueDateStatus("2026-11-28", "todo", en)).toEqual({
       type: "upcoming",
-      label: "2026-11-28",
+      label: "Nov 28",
     });
   });
 
   it("handles month and year boundaries", () => {
     vi.setSystemTime(new Date(2026, 11, 31, 9, 0));
-    expect(getDueDateStatus("2027-01-01", "todo")?.label).toBe("Due in 1d");
-    expect(getDueDateStatus("2026-12-30", "todo")?.type).toBe("overdue");
+    expect(getDueDateStatus("2027-01-01", "todo", en)?.label).toBe(
+      "Due tomorrow",
+    );
+    expect(getDueDateStatus("2027-01-05", "todo", en)?.label).toBe(
+      "Jan 5, 2027",
+    );
+    expect(getDueDateStatus("2026-12-30", "todo", en)?.type).toBe("overdue");
+  });
+});
+
+describe("formatDueDate", () => {
+  const now = new Date(2026, 10, 25, 12, 0);
+
+  it("omits the year for dates in the current year", () => {
+    expect(formatDueDate("2026-11-28", { ...en, now })).toBe("Nov 28");
+  });
+
+  it("includes the year for other years", () => {
+    expect(formatDueDate("2027-01-04", { ...en, now })).toBe("Jan 4, 2027");
+    expect(formatDueDate("2025-12-31", { ...en, now })).toBe("Dec 31, 2025");
+  });
+
+  it("reads the date as local, not UTC", () => {
+    // new Date("2026-03-01") is UTC midnight, which is Feb 28 in the Americas.
+    expect(formatDueDate("2026-03-01", { ...en, now })).toBe("Mar 1");
+  });
+});
+
+describe("formatTimestamp", () => {
+  const now = new Date(2026, 10, 25, 18, 0); // Wed, Nov 25, 2026
+  const at = (...args) => new Date(...args).toISOString();
+  // Some ICU versions put a narrow no-break space before "AM"/"PM".
+  const fmt = (ts) => formatTimestamp(ts, { ...en, now }).replace(/\s/g, " ");
+
+  it("shows only the time for today", () => {
+    expect(fmt(at(2026, 10, 25, 15, 40))).toBe("3:40 PM");
+  });
+
+  it("says Yesterday for the previous day", () => {
+    expect(fmt(at(2026, 10, 24, 9, 5))).toBe("Yesterday, 9:05 AM");
+  });
+
+  it("uses the weekday within the past week", () => {
+    expect(fmt(at(2026, 10, 20, 14, 0))).toBe("Fri, 2:00 PM");
+  });
+
+  it("uses the month and day earlier this year", () => {
+    expect(fmt(at(2026, 10, 3, 15, 40))).toBe("Nov 3, 3:40 PM");
+  });
+
+  it("uses the full date for other years", () => {
+    expect(fmt(at(2025, 10, 3, 15, 40))).toBe("Nov 3, 2025");
   });
 });
 
