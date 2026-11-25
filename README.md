@@ -6,8 +6,10 @@
 
 ![Kanban Board Screenshot](./assets/kanban-screenshot.png)
 
+[![CI](https://github.com/rm9v27j9jv-collab/Kanban-Board/actions/workflows/ci.yml/badge.svg)](https://github.com/rm9v27j9jv-collab/Kanban-Board/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat&logo=netlify)](https://board-assesment.netlify.app/)
 [![Supabase](https://img.shields.io/badge/Supabase-Integrated-3ecf8e?style=flat&logo=supabase)](https://supabase.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](LICENSE)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e?style=flat&logo=supabase)](https://supabase.com)
 
 ---
@@ -23,6 +25,7 @@
 - **💬 Task details:** a slide-over panel for editing fields inline, with comments and an activity log for each task.
 - **🔍 Search and filters:** search titles and descriptions, and filter by label, assignee, priority or due-date urgency.
 - **🧯 Resilient updates:** changes appear on screen immediately. If a save fails, the change is rolled back and an error message is shown.
+- **♿ Accessible:** it works with a keyboard alone (cards open with Enter, and modals trap focus and close with Escape), labels every control for screen readers, and meets WCAG AA text contrast.
 - **🗂️ Four workflow columns:** To Do, In Progress, In Review and Done, with native HTML5 drag-and-drop to move tasks between them.
 - **🔐 Instant private workspace:** No sign-up required. Each visitor is signed in with Supabase Anonymous Auth, and the session persists across reloads.
 - **🛡️ Row Level Security (RLS):** Policies on all six tables ensure a session can only read and change its own data.
@@ -43,6 +46,7 @@
 
 - **Frontend:** React 19, Vite, JavaScript (inline style objects, no CSS framework)
 - **Backend / Database:** Supabase (PostgreSQL, Auth, Realtime, Row-Level Security)
+- **Tooling & Deployment:** Vitest, oxlint, GitHub Actions, Netlify
 - **Tooling & Deployment:** oxlint, Netlify, Git / GitHub
 - **Frontend:** React 19, Vite, JavaScript, inline component styles
 - **Backend / Database:** Supabase (PostgreSQL, Anonymous Auth, Row Level Security)
@@ -71,9 +75,11 @@ src/
 ├── App.jsx            # connects the hooks to the components
 ├── hooks/             # useWorkspace, useTaskDetail, useTaskFilters, useToast
 ├── components/        # Header, Toolbar, Board, TaskCard, TaskDrawer, modals and shared pieces
-├── lib/               # constants (columns, priorities, colors) and helpers
+├── lib/               # constants, helpers and filter logic, with their *.test.js files
 ├── styles.js          # shared inline style objects
 └── supabaseClient.js  # Supabase client and guest session helper
+supabase/schema.sql    # tables, row-level security and realtime setup
+.github/workflows/     # CI: lint, test and build on every push and PR
 ```
 - **Why Supabase instead of a custom Node/Express backend?** It let me ship a full-stack app quickly without giving up security. Authorization lives in PostgreSQL RLS policies, so even a request that bypasses the UI can't touch another session's rows.
 - **Why anonymous auth?** Visitors (including recruiters clicking the demo link) can try the board immediately without creating an account, while still getting an isolated workspace.
@@ -108,41 +114,32 @@ npm install
 
 ### 2. Configure environment variables
 
+Copy the example file and fill in your project's values:
 Create a `.env` file in the project root:
 Create a `.env` file in the project root (it is already git-ignored):
 
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+cp .env.example .env
 ```
 
-Both values are under **Project Settings → API** in the Supabase dashboard.
+Both values are under **Project Settings → API** in the Supabase dashboard. Use the publishable (anon) key, never the secret one.
 
 ### 3. Set up Supabase
 
 1. **Enable anonymous sign-ins:** go to **Authentication → Sign In / Providers** and turn on **Allow anonymous sign-ins**.
-2. **Create the tables** the app uses. Each one needs an `id` primary key and a `user_id` column:
-
-   | Table | Columns used by the app |
-   |---|---|
-   | `tasks` | `title`, `description`, `status` (`todo` / `in_progress` / `in_review` / `done`), `priority` (`low` / `normal` / `high`), `due_date`, `assignee_id`, `created_at` |
-   | `team_members` | `name`, `role`, `avatar_color`, `created_at` |
-   | `labels` | `name`, `color`, `created_at` |
-   | `task_labels` | `task_id`, `label_id` |
-   | `task_comments` | `task_id`, `body`, `created_at` |
-   | `task_activity` | `task_id`, `action`, `details`, `created_at` |
-
-3. **Enable RLS** on every table, with policies limiting access to rows where `user_id = auth.uid()`.
-4. **Enable realtime** for the tables:
-
-   ```sql
-   alter publication supabase_realtime
-     add table tasks, task_labels, labels, team_members, task_comments, task_activity;
-   ```
+2. **Create the database:** open the **SQL Editor**, paste in [`supabase/schema.sql`](supabase/schema.sql), and run it. It creates the six tables, turns on row-level security so each user only sees their own rows, and enables realtime. It's safe to run more than once.
 
 ### 4. Run the app
 
 ```bash
+npm run dev         # start the dev server
+npm test            # run the unit tests once
+npm run test:watch  # rerun the tests as files change
+npm run lint        # lint with oxlint
+npm run build       # production build
+```
+
+`npm test` goes through [`scripts/vitest.mjs`](scripts/vitest.mjs). On Windows it uppercases the drive letter first, because Vitest fails to start when the terminal opens the folder as `c:\...`, as VS Code's often does.
 npm run dev      # start the dev server
 npm run build    # production build
 npm run lint     # lint with oxlint
@@ -195,4 +192,5 @@ Then open the URL Vite prints (usually http://localhost:5173).
 
 ## 📄 License
 
+[MIT](LICENSE) © 2026 Hunter Bryant
 [MIT](LICENSE)

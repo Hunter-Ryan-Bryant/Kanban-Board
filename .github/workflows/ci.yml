@@ -1,9 +1,25 @@
+name: CI
 name: ci
 
 on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
 
 jobs:
   lint-and-build:
@@ -14,6 +30,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
       - run: npm ci
       - run: npm run lint
       - run: npm run build
