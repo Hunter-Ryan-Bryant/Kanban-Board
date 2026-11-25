@@ -36,7 +36,23 @@
 - **Supabase instead of a custom backend:** Postgres row-level security enforces authorization at the database layer, so the client talks to Supabase directly with no API server to maintain or secure.
 - **Changes show before the save finishes:** the UI updates first and then saves to the database. If the save fails, the change is reverted and an error is shown.
 - **Realtime handling:** the app's own writes come back through the subscription too, so incoming rows replace existing ones by id instead of being appended. That prevents duplicates. A remote update to the task being edited doesn't overwrite fields the user is typing in.
-- **State management:** all state lives in a single top-level component ([`src/App.jsx`](src/App.jsx)), using React hooks (`useState`, `useMemo`, `useRef`). Text fields save when they lose focus rather than on every keystroke.
+- **State management:** custom hooks hold the data and the logic, and components handle presentation:
+  - `useWorkspace` covers the session, the four board collections, realtime sync and every write.
+  - `useTaskDetail` covers the detail panel.
+  - `useTaskFilters` covers search and filters.
+- **The open task isn't a separate copy:** the detail panel shows the task from the board's list, plus any edits not yet saved. Remote updates and rollbacks appear in the panel automatically, without overwriting what the user is typing. Text fields save when they lose focus rather than on every keystroke.
+
+### Project structure
+
+```text
+src/
+├── App.jsx            # connects the hooks to the components
+├── hooks/             # useWorkspace, useTaskDetail, useTaskFilters, useToast
+├── components/        # Header, Toolbar, Board, TaskCard, TaskDrawer, modals and shared pieces
+├── lib/               # constants (columns, priorities, colors) and helpers
+├── styles.js          # shared inline style objects
+└── supabaseClient.js  # Supabase client and guest session helper
+```
 
 ---
 
