@@ -48,6 +48,7 @@ export const styles = {
     border: "4px solid #1e293b",
     borderTop: "4px solid #3b82f6",
     borderRadius: "50%",
+    animation: "spin 0.8s linear infinite",
   },
   header: {
     display: "flex",
