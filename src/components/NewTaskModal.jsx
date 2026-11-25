@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { styles } from "../styles";
+import ui from "./ui.module.css";
 import LabelPicker from "./LabelPicker";
 import Modal from "./Modal";
 import TaskMetaFields from "./TaskMetaFields";
@@ -39,9 +39,9 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
   // isn't lost by accident.
   return (
     <Modal title="Create New Task" onClose={onClose} closeOnOverlayClick={false}>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div style={styles.fieldGroup}>
-          <label htmlFor={`${id}-title`} style={styles.label}>
+      <form onSubmit={handleSubmit} className={ui.form}>
+        <div className={ui.fieldGroup}>
+          <label htmlFor={`${id}-title`} className={ui.label}>
             Task Title *
           </label>
           <input
@@ -52,11 +52,11 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
             onChange={(e) => setField("title", e.target.value)}
             placeholder="Task title..."
             required
-            style={styles.input}
+            className={ui.input}
           />
         </div>
-        <div style={styles.fieldGroup}>
-          <label htmlFor={`${id}-description`} style={styles.label}>
+        <div className={ui.fieldGroup}>
+          <label htmlFor={`${id}-description`} className={ui.label}>
             Description
           </label>
           <textarea
@@ -64,13 +64,13 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
             value={values.description}
             onChange={(e) => setField("description", e.target.value)}
             rows={3}
-            style={styles.textarea}
+            className={ui.textarea}
             placeholder="Details..."
           />
         </div>
 
-        <div style={styles.fieldGroup}>
-          <span id={`${id}-labels`} style={styles.label}>
+        <div className={ui.fieldGroup}>
+          <span id={`${id}-labels`} className={ui.label}>
             Labels
           </span>
           <LabelPicker
@@ -88,11 +88,11 @@ export default function NewTaskModal({ labels, teamMembers, onCreate, onClose })
           onChange={setField}
         />
 
-        <div style={styles.modalActions}>
-          <button type="button" onClick={onClose} style={styles.cancelButton}>
+        <div className={ui.modalActions}>
+          <button type="button" onClick={onClose} className={ui.cancelButton}>
             Cancel
           </button>
-          <button type="submit" style={styles.primaryButton}>
+          <button type="submit" className={ui.primaryButton}>
             Create Task
           </button>
         </div>

@@ -1,6 +1,8 @@
 import { useId } from "react";
 import { useDialog } from "../hooks/useDialog";
-import { styles } from "../styles";
+import { cx } from "../lib/utils";
+import css from "./Modal.module.css";
+import ui from "./ui.module.css";
 
 export default function Modal({
   title,
@@ -13,7 +15,7 @@ export default function Modal({
 
   return (
     <div
-      style={styles.modalOverlay}
+      className={css.overlay}
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <div
@@ -22,17 +24,17 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        style={styles.modalContent}
+        className={css.content}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={styles.modalHeader}>
-          <h2 id={titleId} style={styles.modalTitle}>
+        <div className={css.header}>
+          <h2 id={titleId} className={css.title}>
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            style={styles.closeButton}
+            className={cx(ui.iconButton, ui.closeButton)}
             aria-label="Close"
           >
             ×

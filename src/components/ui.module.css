@@ -1,0 +1,221 @@
+/* Shared building blocks: buttons, form fields, empty states and list rows. */
+
+/* ---- Buttons ---- */
+
+.primaryButton,
+.secondaryButton {
+  background-color: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--transition),
+    transform var(--transition);
+}
+
+.primaryButton {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+.secondaryButton {
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  background-color: var(--accent-hover);
+}
+
+.primaryButton:active,
+.secondaryButton:active,
+.cancelButton:active,
+.headerButton:active {
+  transform: translateY(1px);
+}
+
+/* Submit button at the end of a swatch row. */
+.inlineSubmit {
+  margin-left: auto;
+  padding: 0.45rem 1rem;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: var(--text-subtle);
+  border: 1px solid var(--border-strong);
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    color var(--transition),
+    border-color var(--transition),
+    background-color var(--transition),
+    transform var(--transition);
+}
+
+.cancelButton:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.headerButton {
+  background-color: var(--surface-control);
+  color: var(--text-soft);
+  border: 1px solid var(--border-control);
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    background-color var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.headerButton:hover {
+  background-color: var(--border-control);
+  border-color: #475569;
+}
+
+/* × buttons. Add .closeButton for dialog headers or .danger for deletes. */
+.iconButton {
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition);
+}
+
+.iconButton:hover {
+  color: var(--text);
+}
+
+.closeButton {
+  font-size: 1.5rem;
+  padding: 0 0.25rem;
+}
+
+.danger:hover {
+  color: var(--danger);
+}
+
+/* ---- Forms ---- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* The add forms above the label and team lists. */
+.manageForm {
+  margin-bottom: 1.25rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.rowGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.input,
+.textarea {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0.625rem;
+  color: #f9fafb;
+  font-size: 0.875rem;
+  transition: border-color var(--transition);
+}
+
+.input {
+  flex: 1;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:hover,
+.textarea:hover {
+  border-color: var(--border-hover);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--focus);
+}
+
+/* Cancel / submit row at the bottom of a form. */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* ---- Misc ---- */
+
+.emptyText {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.5rem 0;
+}
+
+/* Rows in the label and team management lists. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--surface-raised);
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+}
+
+@media (max-width: 640px) {
+  .rowGroup {
+    grid-template-columns: 1fr;
+  }
+}

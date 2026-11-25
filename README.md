@@ -44,7 +44,7 @@
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React 19, Vite, JavaScript (inline style objects, no CSS framework)
+- **Frontend:** React 19, Vite, JavaScript, CSS Modules with design tokens (no CSS framework)
 - **Backend / Database:** Supabase (PostgreSQL, Auth, Realtime, Row-Level Security)
 - **Tooling & Deployment:** Vitest, oxlint, GitHub Actions, Netlify
 - **Tooling & Deployment:** oxlint, Netlify, Git / GitHub
@@ -74,9 +74,10 @@
 src/
 ├── App.jsx            # connects the hooks to the components
 ├── hooks/             # useWorkspace, useTaskDetail, useTaskFilters, useToast
-├── components/        # Header, Toolbar, Board, TaskCard, TaskDrawer, modals and shared pieces
+├── components/        # Header, Toolbar, Board, TaskCard, TaskDrawer, modals and shared pieces,
+│                      #   each with its own *.module.css; ui.module.css holds shared buttons and fields
 ├── lib/               # constants, helpers and filter logic, with their *.test.js files
-├── styles.js          # shared inline style objects
+├── index.css          # design tokens (colors, radii, motion) and global base styles
 └── supabaseClient.js  # Supabase client and guest session helper
 supabase/schema.sql    # tables, row-level security and realtime setup
 .github/workflows/     # CI: lint, test and build on every push and PR

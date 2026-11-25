@@ -11,7 +11,9 @@ import { useTaskDetail } from "./hooks/useTaskDetail";
 import { useTaskFilters } from "./hooks/useTaskFilters";
 import { useToast } from "./hooks/useToast";
 import { useWorkspace } from "./hooks/useWorkspace";
-import { styles } from "./styles";
+import { cx } from "./lib/utils";
+import css from "./App.module.css";
+import ui from "./components/ui.module.css";
 
 export default function App() {
   const toast = useToast();
@@ -30,13 +32,12 @@ export default function App() {
 
   if (workspace.loadError) {
     return (
-      <div role="alert" style={styles.loaderContainer}>
-        <p style={{ color: "#fca5a5", maxWidth: "28rem", textAlign: "center" }}>
-          {workspace.loadError}
-        </p>
+      <div role="alert" className={css.screen}>
+        <p className={css.errorText}>{workspace.loadError}</p>
         <button
+          type="button"
           onClick={() => window.location.reload()}
-          style={{ ...styles.primaryButton, marginTop: "1rem" }}
+          className={cx(ui.primaryButton, css.retryButton)}
         >
           Try again
         </button>
@@ -46,17 +47,15 @@ export default function App() {
 
   if (workspace.loading) {
     return (
-      <div role="status" style={styles.loaderContainer}>
-        <div aria-hidden="true" style={styles.spinner}></div>
-        <p style={{ color: "#94a3b8", marginTop: "1rem" }}>
-          Loading workspace...
-        </p>
+      <div role="status" className={css.screen}>
+        <div aria-hidden="true" className={css.spinner}></div>
+        <p className={css.loadingText}>Loading workspace...</p>
       </div>
     );
   }
 
   return (
-    <main style={styles.appContainer}>
+    <main className={css.app}>
       <Header
         tasks={workspace.tasks}
         realtimeStatus={workspace.realtimeStatus}

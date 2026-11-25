@@ -1,4 +1,5 @@
-import { styles } from "../styles";
+import css from "./LabelPicker.module.css";
+import ui from "./ui.module.css";
 
 // Toggle buttons for attaching labels, used by the new-task form and drawer.
 // `labelId` names the group.
@@ -10,16 +11,7 @@ export default function LabelPicker({
   labelId,
 }) {
   return (
-    <div
-      role="group"
-      aria-labelledby={labelId}
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "0.375rem",
-        marginTop: "0.25rem",
-      }}
-    >
+    <div role="group" aria-labelledby={labelId} className={css.group}>
       {labels.map((l) => {
         const isSelected = selectedIds.includes(l.id);
         return (
@@ -28,23 +20,15 @@ export default function LabelPicker({
             type="button"
             onClick={() => onToggle(l.id)}
             aria-pressed={isSelected}
-            style={{
-              backgroundColor: isSelected ? `${l.color}35` : "#1f2937",
-              color: isSelected ? l.color : "#94a3b8",
-              border: `1px solid ${isSelected ? l.color : "#374151"}`,
-              padding: "0.25rem 0.625rem",
-              borderRadius: "6px",
-              fontSize: "0.78rem",
-              fontWeight: "600",
-              cursor: "pointer",
-            }}
+            className={css.toggle}
+            style={{ "--label": l.color }}
           >
             <span aria-hidden="true">{isSelected ? "✓ " : "+ "}</span>
             {l.name}
           </button>
         );
       })}
-      {labels.length === 0 && <span style={styles.emptyText}>{emptyText}</span>}
+      {labels.length === 0 && <span className={ui.emptyText}>{emptyText}</span>}
     </div>
   );
 }

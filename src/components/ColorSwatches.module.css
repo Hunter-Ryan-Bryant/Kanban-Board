@@ -1,0 +1,28 @@
+.row,
+.group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Swatch color comes from the --swatch custom property on each button. */
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--swatch);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    transform var(--transition);
+}
+
+.swatch:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.swatch[aria-pressed="true"] {
+  border-color: #ffffff;
+}

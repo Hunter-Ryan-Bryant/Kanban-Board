@@ -1,0 +1,33 @@
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+/* Label color comes from the --label custom property on each button. */
+.toggle {
+  background-color: var(--surface-raised);
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color var(--transition),
+    border-color var(--transition),
+    background-color var(--transition);
+}
+
+.toggle:hover {
+  color: var(--text-soft);
+  border-color: var(--label);
+}
+
+.toggle[aria-pressed="true"] {
+  background-color: color-mix(in srgb, var(--label) 21%, transparent);
+  color: var(--label);
+  border-color: var(--label);
+}

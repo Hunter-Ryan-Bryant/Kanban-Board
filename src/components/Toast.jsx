@@ -1,11 +1,16 @@
-import { styles } from "../styles";
+import css from "./Toast.module.css";
 
 export default function Toast({ message, onDismiss }) {
   if (!message) return null;
   return (
-    <div role="alert" style={styles.toast}>
+    <div role="alert" className={css.toast}>
       <span>{message}</span>
-      <button onClick={onDismiss} style={styles.toastClose} aria-label="Dismiss">
+      <button
+        type="button"
+        onClick={onDismiss}
+        className={css.dismiss}
+        aria-label="Dismiss"
+      >
         ×
       </button>
     </div>

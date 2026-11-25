@@ -1,0 +1,16 @@
+.member {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.role {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

@@ -5,10 +5,11 @@ export const COLUMNS = [
   { id: "done", label: "Done", color: "#10b981" },
 ];
 
+// Badge colors for each priority are in TaskCard.module.css.
 export const PRIORITIES = [
-  { id: "low", label: "Low", bg: "#14532d", color: "#86efac" },
-  { id: "normal", label: "Normal", bg: "#334155", color: "#cbd5e1" },
-  { id: "high", label: "High", bg: "#7f1d1d", color: "#fca5a5" },
+  { id: "low", label: "Low" },
+  { id: "normal", label: "Normal" },
+  { id: "high", label: "High" },
 ];
 
 // Accessible names for the swatch colors below.
