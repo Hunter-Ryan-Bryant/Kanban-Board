@@ -1,0 +1,47 @@
+# Supabase pauses free-tier projects after about 7 days without activity,
+# which takes the live demo down. This runs a tiny read-only query twice a
+# week so the project never goes idle, and fails loudly (GitHub emails the
+# repo owner) if the project is unreachable.
+#
+# Requires repository secrets SUPABASE_URL and SUPABASE_ANON_KEY
+# (Settings -> Secrets and variables -> Actions), same values as .env.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    # Mondays and Thursdays at 09:23 UTC.
+    - cron: "23 9 * * 1,4"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-supabase-awake
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Query the database
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - name: Check secrets are set
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Add the SUPABASE_URL and SUPABASE_ANON_KEY repository secrets (Settings -> Secrets and variables -> Actions)."
+            exit 1
+          fi
+
+      # Row-level security returns [] without a signed-in user, but the
+      # request still reaches Postgres, which is what counts as activity.
+      # Only the status code is printed.
+      - name: Query tasks
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 10 --retry-all-errors \
+            "$SUPABASE_URL/rest/v1/tasks?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -o /dev/null -w "HTTP %{http_code}\n"

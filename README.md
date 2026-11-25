@@ -104,6 +104,17 @@ npm run build       # production build
 
 `npm test` goes through [`scripts/vitest.mjs`](scripts/vitest.mjs). On Windows it uppercases the drive letter first, because Vitest fails to start when the terminal opens the folder as `c:\...`, as VS Code's often does.
 
+### 5. Keep the demo online (optional)
+
+Supabase pauses free projects after about a week with no activity, which takes a deployed demo down. The [Keep Supabase awake](.github/workflows/keep-supabase-awake.yml) workflow runs a small read-only query every Monday and Thursday so that doesn't happen. If the project is ever unreachable, the run fails and GitHub emails you.
+
+To turn it on, add two repository secrets under **Settings → Secrets and variables → Actions**, with the same values as your `.env`:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+To run it by hand, open **Actions → Keep Supabase awake → Run workflow**. GitHub turns scheduled workflows off after 60 days with no pushes to the repo. It emails you first, and you can turn it back on from the Actions tab.
+
 ---
 
 ## 📄 License
