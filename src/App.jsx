@@ -27,6 +27,22 @@ const LABEL_COLORS = [
   "#64748b",
 ];
 
+// Insert or replace a row by id. Realtime echoes our own writes back to us,
+// so every handler has to tolerate rows it already has.
+function upsertById(list, row, { prepend = false } = {}) {
+  const index = list.findIndex((item) => item.id === row.id);
+  if (index === -1) return prepend ? [row, ...list] : [...list, row];
+  const next = list.slice();
+  next[index] = { ...list[index], ...row };
+  return next;
+}
+
+function removeById(list, id) {
+  return list.some((item) => item.id === id)
+    ? list.filter((item) => item.id !== id)
+    : list;
+}
+
 function getInitials(name) {
   if (!name) return "?";
   return name
@@ -143,6 +159,11 @@ export default function App() {
   // Tracks which task the drawer is showing, so slow responses for a
   // previously opened task don't overwrite the current one.
   const openTaskIdRef = useRef(null);
+  // Drawer fields with unsaved local edits. Remote updates to the open task
+  // leave these alone so they don't clobber what the user is typing.
+  const dirtyFieldsRef = useRef(new Set());
+  // "connecting" | "live" | "offline"
+  const [realtimeStatus, setRealtimeStatus] = useState("connecting");
 
   function notify(message) {
     setToast(message);
@@ -211,6 +232,111 @@ export default function App() {
     }
     init();
   }, []);
+
+  const userId = session?.user?.id;
+
+  useEffect(() => {
+    if (!userId) return;
+    let hasConnected = false;
+
+    function handleTaskChange({ eventType, new: row, old }) {
+      if (eventType === "DELETE") {
+        setTasks((prev) => removeById(prev, old.id));
+        setTaskLabels((prev) => prev.filter((tl) => tl.task_id !== old.id));
+        if (openTaskIdRef.current === old.id) {
+          openTaskIdRef.current = null;
+          dirtyFieldsRef.current.clear();
+          setSelectedTask(null);
+          notify("The task you were viewing was deleted.");
+        }
+        return;
+      }
+      setTasks((prev) => upsertById(prev, row, { prepend: true }));
+      setSelectedTask((prev) => {
+        if (prev?.id !== row.id) return prev;
+        const merged = { ...prev, ...row };
+        dirtyFieldsRef.current.forEach((field) => {
+          merged[field] = prev[field];
+        });
+        return merged;
+      });
+    }
+
+    function listHandler(setter) {
+      return ({ eventType, new: row, old }) =>
+        setter((prev) =>
+          eventType === "DELETE" ? removeById(prev, old.id) : upsertById(prev, row),
+        );
+    }
+
+    function handleTeamMemberChange(payload) {
+      listHandler(setTeamMembers)(payload);
+      if (payload.eventType === "DELETE") {
+        const id = payload.old.id;
+        setTasks((prev) =>
+          prev.map((t) => (t.assignee_id === id ? { ...t, assignee_id: null } : t)),
+        );
+        setSelectedTask((prev) =>
+          prev?.assignee_id === id ? { ...prev, assignee_id: null } : prev,
+        );
+      }
+    }
+
+    function handleLabelChange(payload) {
+      listHandler(setLabels)(payload);
+      if (payload.eventType === "DELETE") {
+        setTaskLabels((prev) =>
+          prev.filter((tl) => tl.label_id !== payload.old.id),
+        );
+      }
+    }
+
+    function handleCommentChange({ eventType, new: row, old }) {
+      if (eventType === "DELETE") {
+        setComments((prev) => removeById(prev, old.id));
+      } else if (row.task_id === openTaskIdRef.current) {
+        setComments((prev) => upsertById(prev, row));
+      }
+    }
+
+    function handleActivityChange({ eventType, new: row }) {
+      if (eventType === "INSERT" && row.task_id === openTaskIdRef.current) {
+        setActivityLogs((prev) => upsertById(prev, row, { prepend: true }));
+      }
+    }
+
+    const watch = (table) => ({ event: "*", schema: "public", table });
+    const channel = supabase
+      .channel(`board-${userId}`)
+      .on("postgres_changes", watch("tasks"), handleTaskChange)
+      .on("postgres_changes", watch("task_labels"), listHandler(setTaskLabels))
+      .on("postgres_changes", watch("labels"), handleLabelChange)
+      .on("postgres_changes", watch("team_members"), handleTeamMemberChange)
+      .on("postgres_changes", watch("task_comments"), handleCommentChange)
+      .on("postgres_changes", watch("task_activity"), handleActivityChange)
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          setRealtimeStatus("live");
+          // After a reconnect, refetch to pick up anything missed while offline.
+          if (hasConnected) {
+            fetchTasks();
+            fetchTeamMembers();
+            fetchLabels();
+            fetchTaskLabels();
+          }
+          hasConnected = true;
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setRealtimeStatus("offline");
+          console.warn("Realtime connection problem:", status, err?.message);
+        } else if (status === "CLOSED") {
+          setRealtimeStatus("offline");
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   async function handleAddTeamMember(e) {
     e.preventDefault();
@@ -296,6 +422,7 @@ export default function App() {
 
   async function openTaskDetail(task) {
     openTaskIdRef.current = task.id;
+    dirtyFieldsRef.current.clear();
     setSelectedTask(task);
     setComments([]);
     setActivityLogs([]);
@@ -323,6 +450,7 @@ export default function App() {
 
   function closeTaskDetail() {
     openTaskIdRef.current = null;
+    dirtyFieldsRef.current.clear();
     setSelectedTask(null);
   }
 
@@ -485,12 +613,14 @@ export default function App() {
   // Updates the drawer's copy of a field without saving. Used for text
   // inputs so the database is only written once, on blur.
   function handleEditTaskField(field, value) {
+    dirtyFieldsRef.current.add(field);
     setSelectedTask((prev) => (prev ? { ...prev, [field]: value } : prev));
   }
 
   // Saves a field if it differs from the last saved value. On failure the
   // board and drawer are rolled back to the saved value.
   async function handleSaveTaskField(field, value) {
+    dirtyFieldsRef.current.delete(field);
     if (!selectedTask) return;
     const taskId = selectedTask.id;
     const saved = tasks.find((t) => t.id === taskId);
@@ -697,6 +827,33 @@ export default function App() {
           <h1 style={styles.logo}>Kanban Workspace</h1>
           <p style={styles.subtitle}>
             Guest Session Active • Custom Tags, Assignments & Audit Logs
+          </p>
+          <p
+            style={styles.realtimeStatus}
+            title={
+              realtimeStatus === "live"
+                ? "Changes from other tabs and devices appear instantly"
+                : realtimeStatus === "offline"
+                  ? "Live updates paused, reconnecting…"
+                  : "Connecting to live updates…"
+            }
+          >
+            <span
+              style={{
+                ...styles.realtimeDot,
+                backgroundColor:
+                  realtimeStatus === "live"
+                    ? "#10b981"
+                    : realtimeStatus === "offline"
+                      ? "#ef4444"
+                      : "#f59e0b",
+              }}
+            />
+            {realtimeStatus === "live"
+              ? "Live"
+              : realtimeStatus === "offline"
+                ? "Reconnecting…"
+                : "Connecting…"}
           </p>
         </div>
 
@@ -1682,6 +1839,20 @@ const styles = {
     letterSpacing: "-0.025em",
   },
   subtitle: { fontSize: "0.875rem", color: "#64748b", margin: "0.25rem 0 0 0" },
+  realtimeStatus: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.4rem",
+    fontSize: "0.75rem",
+    color: "#94a3b8",
+    margin: "0.4rem 0 0 0",
+  },
+  realtimeDot: {
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    display: "inline-block",
+  },
   toolbar: {
     display: "flex",
     justifyContent: "space-between",
