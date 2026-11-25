@@ -20,6 +20,8 @@ export function LabelBadge({ label, style }) {
 export function Avatar({ member, style, title }) {
   return (
     <div
+      role="img"
+      aria-label={title ?? member.name}
       style={{
         ...styles.avatarBadge,
         backgroundColor: member.avatar_color,

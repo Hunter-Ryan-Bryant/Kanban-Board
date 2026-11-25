@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { LABEL_COLORS } from "../lib/constants";
 import { styles } from "../styles";
 import { LabelBadge } from "./Badges";
@@ -8,6 +8,7 @@ import Modal from "./Modal";
 export default function LabelsModal({ labels, onAdd, onDelete, onClose }) {
   const [name, setName] = useState("");
   const [color, setColor] = useState(LABEL_COLORS[0]);
+  const id = useId();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,8 +32,12 @@ export default function LabelsModal({ labels, onAdd, onDelete, onClose }) {
         style={{ ...styles.form, marginBottom: "1.25rem" }}
       >
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Label Name *</label>
+          <label htmlFor={`${id}-name`} style={styles.label}>
+            Label Name *
+          </label>
           <input
+            id={`${id}-name`}
+            data-autofocus
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -42,8 +47,15 @@ export default function LabelsModal({ labels, onAdd, onDelete, onClose }) {
           />
         </div>
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Color</label>
-          <ColorSwatches colors={LABEL_COLORS} value={color} onChange={setColor}>
+          <span id={`${id}-color`} style={styles.label}>
+            Color
+          </span>
+          <ColorSwatches
+            colors={LABEL_COLORS}
+            value={color}
+            onChange={setColor}
+            labelId={`${id}-color`}
+          >
             <button
               type="submit"
               style={{
@@ -65,7 +77,12 @@ export default function LabelsModal({ labels, onAdd, onDelete, onClose }) {
               label={l}
               style={{ fontSize: "0.8rem", padding: "0.2rem 0.5rem" }}
             />
-            <button onClick={() => handleDelete(l)} style={styles.deleteBtn}>
+            <button
+              type="button"
+              onClick={() => handleDelete(l)}
+              style={styles.deleteBtn}
+              aria-label={`Delete label ${l.name}`}
+            >
               ×
             </button>
           </div>

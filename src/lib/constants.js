@@ -11,6 +11,18 @@ export const PRIORITIES = [
   { id: "high", label: "High", bg: "#7f1d1d", color: "#fca5a5" },
 ];
 
+// Accessible names for the swatch colors below.
+export const COLOR_NAMES = {
+  "#3b82f6": "Blue",
+  "#10b981": "Green",
+  "#8b5cf6": "Purple",
+  "#f59e0b": "Amber",
+  "#ef4444": "Red",
+  "#ec4899": "Pink",
+  "#06b6d4": "Cyan",
+  "#64748b": "Slate",
+};
+
 export const AVATAR_COLORS = [
   "#3b82f6",
   "#10b981",

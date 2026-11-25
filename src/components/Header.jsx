@@ -60,8 +60,9 @@ export default function Header({
         <p style={styles.subtitle}>
           Guest Session Active • Custom Tags, Assignments & Audit Logs
         </p>
-        <p style={styles.realtimeStatus} title={realtime.title}>
+        <p role="status" style={styles.realtimeStatus} title={realtime.title}>
           <span
+            aria-hidden="true"
             style={{ ...styles.realtimeDot, backgroundColor: realtime.color }}
           />
           {realtime.label}
@@ -81,10 +82,10 @@ export default function Header({
         </div>
 
         <button style={styles.secondaryHeaderBtn} onClick={onOpenLabels}>
-          🏷️ Labels ({labelCount})
+          <span aria-hidden="true">🏷️ </span>Labels ({labelCount})
         </button>
         <button style={styles.secondaryHeaderBtn} onClick={onOpenTeam}>
-          👥 Team ({memberCount})
+          <span aria-hidden="true">👥 </span>Team ({memberCount})
         </button>
         <button style={styles.primaryButton} onClick={onNewTask}>
           + New Task
